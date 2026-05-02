@@ -1,0 +1,23 @@
+model_list:
+  - model_name: gpt-4o-mini
+    litellm_params:
+      model: openai/gpt-4o-mini
+      api_key: "os.environ/OPENAI_API_KEY"
+      temperature: 0.2
+  - model_name: gpt-4o
+    litellm_params:
+      model: openai/gpt-4o
+      api_key: "os.environ/OPENAI_API_KEY"
+      temperature: 0.2
+  - model_name: "*"
+    litellm_params:
+      model: "*"
+
+litellm_settings:
+  set_verbose: true
+  json_logs: false
+
+router_settings:
+  routing_strategy: simple-shuffle
+
+# Removed database and prometheus settings for simpler startup

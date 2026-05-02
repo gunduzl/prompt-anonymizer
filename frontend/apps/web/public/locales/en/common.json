@@ -1,0 +1,56 @@
+{
+  "title": "Safe Chat",
+  "subtitle": "Secure and intelligent chat experience",
+  "navigation": {
+    "logout": "Logout"
+  },
+  "chat": {
+    "startConversation": "Start Conversation",
+    "welcomeMessage": "Start your secure and intelligent chat experience with Safe Chat. Your personal data is automatically protected.",
+    "newChat": "New Chat"
+  },
+  "entities": {
+    "email": "Email",
+    "phone": "Phone",
+    "nationalId": "National ID",
+    "creditCard": "Credit Card",
+    "cvv": "CVV",
+    "ip": "IP",
+    "iban": "IBAN",
+    "person": "Person",
+    "location": "Location",
+    "url": "URL",
+    "dateTime": "Date"
+  },
+  "auth": {
+    "login": "Login",
+    "register": "Register",
+    "createAccount": "Create Account",
+    "loginToAccount": "Login to your account",
+    "username": "Username",
+    "password": "Password",
+    "email": "Email",
+    "alreadyHaveAccount": "Already have an account? Login",
+    "noAccount": "Don't have an account? Register",
+    "loginError": "An error occurred while logging in",
+    "registerError": "An error occurred while registering",
+    "registerSuccess": "Registration successful! You can now login."
+  },
+  "messages": {
+    "send": "Send",
+    "sending": "Sending",
+    "sendAnonymized": "Send Anonymized Text",
+    "editedMessage": "Edited Message",
+    "sendEditedMessage": "Send Edited Message",
+    "editMessage": "Edit your message...",
+    "typeMessage": "Type your message...",
+    "retryMessage": "🔄 Retry Send",
+    "containsPII": "Your message contains personal data and needs to be edited."
+  },
+  "privacy": {
+    "title": "Privacy Protection",
+    "description": "Your conversations are protected with advanced privacy features",
+    "piiDetection": "Personal Data Detection",
+    "dataEncryption": "Data Encryption"
+  }
+}

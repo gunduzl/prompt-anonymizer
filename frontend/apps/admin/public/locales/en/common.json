@@ -1,0 +1,52 @@
+{
+  "title": "Safe Chat Admin",
+  "subtitle": "Administration Panel",
+  "navigation": {
+    "dashboard": "Dashboard",
+    "users": "Users",
+    "chats": "Chat Sessions",
+    "analytics": "Analytics",
+    "settings": "Settings",
+    "logout": "Logout"
+  },
+  "dashboard": {
+    "title": "Dashboard Overview",
+    "totalUsers": "Total Users",
+    "activeSessions": "Active Sessions",
+    "totalMessages": "Total Messages",
+    "piiDetections": "PII Detections"
+  },
+  "users": {
+    "title": "User Management",
+    "name": "Name",
+    "email": "Email",
+    "role": "Role",
+    "status": "Status",
+    "actions": "Actions",
+    "active": "Active",
+    "inactive": "Inactive"
+  },
+  "chats": {
+    "title": "Chat Sessions",
+    "user": "User",
+    "messages": "Messages",
+    "duration": "Duration",
+    "piiFound": "PII Found",
+    "viewDetails": "View Details"
+  },
+  "language": {
+    "toggle": "Language",
+    "english": "English",
+    "turkish": "Türkçe"
+  },
+  "common": {
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "edit": "Edit",
+    "view": "View",
+    "search": "Search",
+    "filter": "Filter",
+    "export": "Export"
+  }
+}

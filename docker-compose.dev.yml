@@ -1,0 +1,92 @@
+version: "3.9"
+services:
+  postgres:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_USER: ai_user
+      POSTGRES_PASSWORD: ai_pass
+      POSTGRES_DB: ai_db
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+
+  presidio-analyzer:
+    image: mcr.microsoft.com/presidio-analyzer:latest
+    platform: linux/amd64
+    ports:
+      - "5002:3000"
+
+  presidio-anonymizer:
+    image: mcr.microsoft.com/presidio-anonymizer:latest
+    platform: linux/amd64
+    ports:
+      - "5003:3000"
+
+  litellm:
+    image: ghcr.io/berriai/litellm:main-latest
+    environment:
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - LITELLM_MASTER_KEY=sk-dev-master-key
+      - LITELLM_SALT_KEY=sk-dev-salt-2f6d8c5a7b1e4c8a9d0f1b2c3d4e5f6a
+      - UI_USERNAME=admin
+      - UI_PASSWORD=admin12345
+      - STORE_MODEL_IN_DB=True
+      - DATABASE_URL=postgresql://ai_user:ai_pass@postgres:5432/ai_db
+    ports:
+      - "8003:4000"
+    env_file:
+      - ./backend/.env
+    depends_on:
+      - postgres
+    volumes:
+      - ./litellm.yaml:/app/proxy_config.yaml:ro
+    command: ["--port", "4000", "--config", "/app/proxy_config.yaml"]
+
+  backend:
+    build: ./backend
+    env_file:
+      - ./backend/.env
+    environment:
+      - DATABASE_URL=postgresql+psycopg://ai_user:ai_pass@postgres:5432/ai_db
+      - REDIS_URL=redis://redis:6379/0
+      - PRESIDIO_ANALYZER_URL=http://presidio-analyzer:3000
+      - PRESIDIO_ANONYMIZER_URL=http://presidio-anonymizer:3000
+      - LLM_GATEWAY_URL=http://litellm:4000
+      - LLM_API_KEY=sk-dev-master-key
+    ports:
+      - "8081:8080"
+    depends_on:
+      - postgres
+      - redis
+      - presidio-analyzer
+      - presidio-anonymizer
+
+  frontend-web:
+    # Use Node 18 image to run Next.js without a Dockerfile
+    image: node:18-alpine
+    working_dir: /app
+    volumes:
+      - ./frontend/apps/web:/app
+    environment:
+      - NEXT_PUBLIC_API_BASE=http://localhost:8081
+    command: sh -c "npm install -g pnpm && pnpm install && pnpm dev -p 3000"
+    ports:
+      - "3002:3000"
+
+  frontend-admin:
+    image: node:18-alpine
+    working_dir: /app
+    volumes:
+      - ./frontend/apps/admin:/app
+    environment:
+      - NEXT_PUBLIC_API_BASE=http://localhost:8081
+    command: sh -c "npm install -g pnpm && pnpm install && pnpm dev -p 3001"
+    ports:
+      - "3003:3001"
+
+volumes:
+  pgdata:

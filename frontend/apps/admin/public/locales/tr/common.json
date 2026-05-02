@@ -1,0 +1,52 @@
+{
+  "title": "Güvenli Sohbet Yönetici",
+  "subtitle": "Yönetim Paneli",
+  "navigation": {
+    "dashboard": "Kontrol Paneli",
+    "users": "Kullanıcılar",
+    "chats": "Sohbet Oturumları",
+    "analytics": "Analitik",
+    "settings": "Ayarlar",
+    "logout": "Çıkış Yap"
+  },
+  "dashboard": {
+    "title": "Kontrol Paneli Genel Bakış",
+    "totalUsers": "Toplam Kullanıcı",
+    "activeSessions": "Aktif Oturumlar",
+    "totalMessages": "Toplam Mesaj",
+    "piiDetections": "Kişisel Veri Tespitleri"
+  },
+  "users": {
+    "title": "Kullanıcı Yönetimi",
+    "name": "İsim",
+    "email": "E-posta",
+    "role": "Rol",
+    "status": "Durum",
+    "actions": "İşlemler",
+    "active": "Aktif",
+    "inactive": "Pasif"
+  },
+  "chats": {
+    "title": "Sohbet Oturumları",
+    "user": "Kullanıcı",
+    "messages": "Mesajlar",
+    "duration": "Süre",
+    "piiFound": "Kişisel Veri Bulundu",
+    "viewDetails": "Detayları Görüntüle"
+  },
+  "language": {
+    "toggle": "Dil",
+    "english": "English",
+    "turkish": "Türkçe"
+  },
+  "common": {
+    "save": "Kaydet",
+    "cancel": "İptal",
+    "delete": "Sil",
+    "edit": "Düzenle",
+    "view": "Görüntüle",
+    "search": "Ara",
+    "filter": "Filtrele",
+    "export": "Dışa Aktar"
+  }
+}

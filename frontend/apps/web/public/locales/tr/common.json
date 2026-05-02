@@ -1,0 +1,56 @@
+{
+  "title": "Safe Chat",
+  "subtitle": "Güvenli ve akıllı sohbet deneyimi",
+  "navigation": {
+    "logout": "Çıkış Yap"
+  },
+  "chat": {
+    "startConversation": "Sohbete Başlayın",
+    "welcomeMessage": "Safe Chat ile güvenli ve akıllı sohbet deneyiminizi başlatın. Kişisel verileriniz otomatik olarak korunur.",
+    "newChat": "Yeni Sohbet"
+  },
+  "entities": {
+    "email": "E-posta",
+    "phone": "Telefon",
+    "nationalId": "TCKN",
+    "creditCard": "Kredi Kartı",
+    "cvv": "CVV",
+    "ip": "IP",
+    "iban": "IBAN",
+    "person": "Kişi",
+    "location": "Konum",
+    "url": "URL",
+    "dateTime": "Tarih"
+  },
+  "auth": {
+    "login": "Giriş Yap",
+    "register": "Kayıt Ol",
+    "createAccount": "Hesap oluşturun",
+    "loginToAccount": "Hesabınıza giriş yapın",
+    "username": "Kullanıcı adı",
+    "password": "Şifre",
+    "email": "E-posta",
+    "alreadyHaveAccount": "Zaten hesabınız var mı? Giriş yapın",
+    "noAccount": "Hesabınız yok mu? Kayıt olun",
+    "loginError": "Giriş yapılırken bir hata oluştu",
+    "registerError": "Kayıt olurken bir hata oluştu",
+    "registerSuccess": "Kayıt başarılı! Şimdi giriş yapabilirsiniz."
+  },
+  "messages": {
+    "send": "Gönder",
+    "sending": "Gönderiliyor",
+    "sendAnonymized": "Anonimleştirilmiş Metni Gönder",
+    "editedMessage": "Düzenlenmiş Mesaj",
+    "sendEditedMessage": "Düzenlenmiş Mesajı Gönder",
+    "editMessage": "Mesajınızı düzenleyin...",
+    "typeMessage": "Mesajınızı yazın...",
+    "retryMessage": "🔄 Tekrar Gönder",
+    "containsPII": "Mesajınız kişisel veri içeriyor ve düzenlenmesi gerekiyor."
+  },
+  "privacy": {
+    "title": "Gizlilik Koruması",
+    "description": "Konuşmalarınız gelişmiş gizlilik özellikleri ile korunmaktadır",
+    "piiDetection": "Kişisel Veri Tespiti",
+    "dataEncryption": "Veri Şifreleme"
+  }
+}

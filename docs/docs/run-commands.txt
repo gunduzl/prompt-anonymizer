@@ -1,0 +1,46 @@
+Aşağıdaki komutlarla projeyi en hızlı şekilde ayağa kaldırabilirsin.
+
+Önerilen (tamamı Docker Compose ile)
+
+- Gerekli: Docker ve Docker Compose kurulu olmalı.
+- Proje dizinine geç:
+  - cd /Users/gunduz/Desktop/enterprise-agent
+- OpenAI API anahtarını ortam değişkeni olarak ver:
+  - export OPENAI_API_KEY="sk-…"
+- Tüm servisleri build edip başlat:
+  - docker compose -f docker-compose.dev.yml up --build
+  - Arka planda çalıştırmak istersen: docker compose -f docker-compose.dev.yml up -d --build
+- Servis adresleri:
+  - Web (Son kullanıcı arayüzü): http://localhost:3002/
+  - Admin: http://localhost:3003/
+  - Backend API: http://localhost:8081/
+  - LLM Gateway (LiteLLM UI): http://localhost:8003/
+- Sağlık kontrolü:
+  - curl http://localhost:8081/health
+- Log izleme (örnek):
+  - docker compose -f docker-compose.dev.yml logs -f backend
+- Durdurma:
+  - docker compose -f docker-compose.dev.yml down
+  - Tüm verileri silmek istersen: docker compose -f docker-compose.dev.yml down -v
+Alternatif: Frontend’i lokal çalıştır, backend ve altyapı Docker’da
+
+- Altyapı + backend’i başlat:
+  - cd /Users/gunduz/Desktop/enterprise-agent
+  - export OPENAI_API_KEY="sk-…"
+  - docker compose -f docker-compose.dev.yml up -d --build postgres redis presidio-analyzer presidio-anonymizer litellm backend
+- Web frontend’i lokal geliştirici modda çalıştır:
+  - cd frontend/apps/web
+  - npm install
+  - export NEXT_PUBLIC_API_BASE=" http://localhost:8081 "
+  - npm run dev -p 3000
+  - Tarayıcı: http://localhost:3000/
+- Admin frontend’i lokal istersen:
+  - cd frontend/apps/admin
+  - npm install
+  - export NEXT_PUBLIC_API_BASE=" http://localhost:8081 "
+  - npm run dev -p 3001
+  - Tarayıcı: http://localhost:3001/
+Notlar
+
+- En hızlı ve sorunsuz yöntem, ilk (tamamı Docker Compose) seçeneğidir; Presidio, Postgres ve Redis zaten docker-compose içerisinde hazır gelir.
+- Port çakışması yaşarsan komutlardaki -p değerlerini veya docker-compose’daki port eşlemelerini değiştirebilirsin.

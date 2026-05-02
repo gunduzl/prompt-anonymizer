@@ -1,0 +1,288 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@import "highlight.js/styles/github-dark.css";
+
+:root {
+  /* Light Mode - Enterprise Color Palette */
+  --background: 0 0% 96%;
+  --foreground: 215 25% 15%;
+  --card: 0 0% 100%;
+  --card-foreground: 215 25% 15%;
+  --popover: 0 0% 100%;
+  --popover-foreground: 215 25% 15%;
+
+  /* Primary - Blue Lagoon (#146477) */
+  --primary: 192 71% 27%;
+  --primary-foreground: 190 30% 96%;
+  --primary-hover: 192 71% 23%;
+
+  /* Secondary - Blue Lagoon light tone */
+  --secondary: 185 70% 38%;
+  --secondary-foreground: 0 0% 98%;
+  --secondary-hover: 185 70% 33%;
+
+  /* Accent - Blue Lagoon accent tone */
+  --accent: 185 82% 32%;
+  --accent-foreground: 0 0% 98%;
+  --accent-hover: 185 82% 28%;
+
+  /* Destructive - Red */
+  --destructive: 0 75% 55%;
+  --destructive-foreground: 0 0% 98%;
+
+  /* Neutral tones */
+  --muted: 215 15% 93%;
+  --muted-foreground: 215 15% 45%;
+  --border: 215 15% 85%;
+  --input: 215 15% 90%;
+  --ring: 185 96% 21%;
+
+  /* Chat specific */
+  --chat-user-bg: 0 0% 100%;
+  --chat-user-text: 215 25% 15%;
+  --chat-assistant-bg: 215 10% 97%;
+  --chat-assistant-text: 215 25% 15%;
+
+  --radius: 0.75rem;
+}
+
+.dark {
+  /* Dark Mode - Enterprise Color Palette */
+  --background: 220 30% 6%;
+  --foreground: 215 15% 92%;
+  --card: 215 25% 12%;
+  --card-foreground: 215 15% 92%;
+  --popover: 215 25% 12%;
+  --popover-foreground: 215 15% 92%;
+
+  /* Primary - Blue Lagoon for dark mode */
+  --primary: 185 78% 54%;
+  --primary-foreground: 215 30% 8%;
+  --primary-hover: 185 78% 60%;
+
+  /* Secondary - Lighter lagoon */
+  --secondary: 185 58% 46%;
+  --secondary-foreground: 215 30% 8%;
+  --secondary-hover: 185 58% 52%;
+
+  /* Accent - Lighter lagoon accent */
+  --accent: 185 62% 60%;
+  --accent-foreground: 215 30% 8%;
+  --accent-hover: 185 62% 66%;
+
+  /* Destructive - Lighter Red */
+  --destructive: 0 65% 65%;
+  --destructive-foreground: 215 30% 8%;
+
+  /* Neutral tones for dark mode */
+  --muted: 215 20% 16%;
+  --muted-foreground: 215 15% 65%;
+  --border: 215 20% 20%;
+  --input: 215 20% 16%;
+  --ring: 185 78% 54%;
+
+  /* Chat specific for dark mode */
+  --chat-user-bg: 220 25% 14%;
+  --chat-user-text: 215 15% 92%;
+  --chat-assistant-bg: 215 20% 20%;
+  --chat-assistant-text: 215 15% 92%;
+}
+
+* {
+  border-color: hsl(var(--border));
+}
+
+body {
+  color: hsl(var(--foreground));
+  background: hsl(var(--background));
+  font-feature-settings: "rlig" 1, "calt" 1;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+    "Helvetica Neue", Arial, sans-serif;
+  line-height: 1.6;
+  letter-spacing: -0.01em;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: hsl(var(--muted-foreground) / 0.3);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: hsl(var(--muted-foreground) / 0.5);
+}
+
+/* Enhanced animations for modern feel */
+.animate-fade-in {
+  animation: fadeIn 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-slide-in {
+  animation: slideIn 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@keyframes slideIn {
+  from {
+    transform: translateX(-20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+/* Modern message bubble styles */
+.message-bubble {
+  @apply rounded-2xl px-5 py-4 max-w-[85%] break-words shadow-sm;
+  backdrop-filter: blur(10px);
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.message-bubble:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 8px 25px -8px rgba(0, 0, 0, 0.1);
+}
+
+.message-user {
+  background: hsl(var(--chat-user-bg));
+  color: hsl(var(--chat-user-text));
+  border: 1px solid hsl(var(--border));
+  @apply ml-auto;
+}
+
+.message-assistant {
+  background: hsl(var(--chat-assistant-bg));
+  color: hsl(var(--chat-assistant-text));
+  border: 1px solid hsl(var(--border));
+}
+
+/* Enhanced code block styling */
+pre {
+  @apply rounded-xl p-5 overflow-x-auto;
+  background: hsl(var(--muted));
+  border: 1px solid hsl(var(--border));
+  font-family: "SF Mono", Monaco, "Cascadia Code", "Roboto Mono", Consolas,
+    "Courier New", monospace;
+  font-size: 0.875rem;
+  line-height: 1.7;
+}
+
+.dark pre {
+  background: hsl(215 25% 12%);
+  border-color: hsl(var(--border));
+}
+
+/* Enhanced input and button styles */
+.modern-input {
+  @apply w-full px-4 py-3 rounded-xl border border-input bg-background text-foreground;
+  @apply focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent;
+  @apply transition-all duration-200 ease-in-out;
+  font-size: 0.95rem;
+}
+
+.modern-button {
+  @apply px-6 py-3 rounded-xl font-medium transition-all duration-200 ease-in-out;
+  @apply focus:outline-none focus:ring-2 focus:ring-offset-2;
+}
+
+.modern-button-primary {
+  @apply modern-button bg-primary text-primary-foreground;
+  @apply hover:bg-primary-hover focus:ring-primary;
+  @apply shadow-sm hover:shadow-md;
+}
+
+.modern-button-secondary {
+  @apply modern-button bg-secondary text-secondary-foreground;
+  @apply hover:bg-secondary-hover focus:ring-secondary;
+}
+
+/* Enterprise-grade card styling */
+.enterprise-card {
+  @apply bg-card text-card-foreground rounded-2xl border border-border;
+  @apply shadow-sm hover:shadow-lg transition-all duration-300 ease-in-out;
+  backdrop-filter: blur(10px);
+}
+
+/* Gradient backgrounds for visual interest */
+.gradient-bg {
+  background: linear-gradient(
+    135deg,
+    hsl(var(--background)) 0%,
+    hsl(var(--muted)) 100%
+  );
+}
+
+.dark .gradient-bg {
+  background: linear-gradient(
+    135deg,
+    hsl(var(--background)) 0%,
+    hsl(215 25% 10%) 100%
+  );
+}
+
+code {
+  @apply bg-gray-100 dark:bg-gray-800 px-1 py-0.5 rounded text-sm;
+}
+
+pre code {
+  @apply bg-transparent p-0;
+}
+
+/* Loading animation */
+.loading-dots {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.loading-dots span {
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background-color: currentColor;
+  animation: loading 1.4s infinite ease-in-out both;
+}
+
+.loading-dots span:nth-child(1) {
+  animation-delay: -0.32s;
+}
+
+.loading-dots span:nth-child(2) {
+  animation-delay: -0.16s;
+}
+
+@keyframes loading {
+  0%,
+  80%,
+  100% {
+    transform: scale(0);
+    opacity: 0.5;
+  }
+  40% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}

@@ -1,0 +1,71 @@
+# Dependencies
+node_modules/
+**/node_modules/
+.pnpm-store/
+**/.pnpm-store/
+
+# Python virtual environment
+.venv/
+venv/
+**/venv/
+**/__pycache__/
+*.pyc
+
+# Database files
+*.sqlite
+*.db
+test.db
+ai_db.sqlite
+**/data/postgres/
+
+# Environment files
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+**/.env*
+
+# Build outputs
+dist/
+build/
+.next/
+**/ .next/
+out/
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+logs/
+**/logs/
+
+# Git objects and pack files (large files)
+.git/objects/pack/*.pack
+
+# Large binary files from dependencies
+**/next-swc.*.node
+**/*.so
+**/*.dylib
+**/*.dll
+
+# PNPM store large files
+**/.pnpm-store/**
+
+# Package lock files (optional, but requested to exclude large files)
+# pnpm-lock.yaml
+# package-lock.json
+# yarn.lock
+
+# Any file larger than 10MB (conservative)
+*.pack
+*.zip
+*.tar.gz
