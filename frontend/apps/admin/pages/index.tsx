@@ -38,12 +38,327 @@ import {
   Server,
   MessageSquare,
   TrendingUp,
+  Copy,
+  Calendar,
+  DollarSign,
+  Gauge,
 } from "lucide-react";
 import axios from "axios";
 import DLPDashboard from "../components/dlp/DLPDashboard";
 import DLPAnalyticsDashboard from "../components/DLPAnalyticsDashboard";
 
 const API = process.env.NEXT_PUBLIC_API_BASE || "http://localhost:8080";
+
+type AdminLocale = "en" | "tr";
+
+const adminCopy = {
+  en: {
+    appTitle: "Safe Chat Admin",
+    nav: {
+      dashboard: "Dashboard",
+      analytics: "Analytics",
+      users: "Users",
+      sessions: "Sessions",
+      keys: "API Keys Management",
+      policies: "DLP Management",
+      config: "System Settings",
+      audit: "Audit Logs",
+      logout: "Logout",
+    },
+    login: {
+      title: "Admin Panel",
+      description: "Sign in to the administration panel",
+      email: "Email or username",
+      password: "Password",
+      submit: "Sign In",
+      loading: "Signing in...",
+      failed: "Login failed",
+    },
+    common: {
+      refresh: "Refresh",
+      add: "Add",
+      error: "Error",
+      active: "Active",
+      inactive: "Inactive",
+      enable: "Enable",
+      disable: "Disable",
+      created: "Created",
+      userId: "User ID",
+      none: "None",
+      private: "Private",
+      public: "Public",
+      optional: "optional",
+      days: "days",
+      message: "message",
+      messages: "messages",
+    },
+    language: {
+      title: "Language",
+      description: "Choose the admin panel language. This applies to all admin menus and pages.",
+      label: "Admin language",
+      english: "English",
+      turkish: "Turkish",
+    },
+    dashboard: {
+      title: "Dashboard",
+      description: "System overview and statistics",
+      totalUsers: "Total Users",
+      activeUsers: "Active",
+      totalSessions: "Total Sessions",
+      avgDuration: "Average duration",
+      totalMessages: "Total Messages",
+      lastPeriod: "Last {{days}} days",
+      dlpViolations: "DLP Violations",
+      totalDetected: "Total detected",
+      recentUsers: "Recent Users",
+      activePolicies: "Active Policies",
+    },
+    analytics: {
+      title: "DLP Analytics",
+      description: "User-based DLP violations and session analytics",
+    },
+    users: {
+      title: "User Management",
+      description: "View and manage users",
+      search: "Search users...",
+      addTitle: "Add New User",
+      email: "Email",
+      username: "Username",
+      password: "Password",
+      listTitle: "Users",
+      failedAttempts: "Failed",
+      loadError: "Users could not be loaded",
+      createError: "User could not be created",
+      deleteConfirm: "Delete user?",
+      deleteError: "User could not be deleted",
+    },
+    sessions: {
+      title: "Session Management",
+      description: "View and manage all user sessions",
+      search: "Search sessions...",
+      listTitle: "Sessions",
+      untitled: "Untitled Session",
+      pinned: "Pinned",
+      archived: "Archived",
+      loadError: "Sessions could not be loaded",
+      archiveError: "Session could not be archived",
+      deleteConfirm: "Delete session?",
+      deleteError: "Session could not be deleted",
+      messagesError: "Messages could not be loaded",
+    },
+    settings: {
+      title: "System Settings",
+      description: "Manage system configuration",
+      addTitle: "Add New Configuration",
+      key: "Key",
+      value: "Value",
+      descriptionField: "Description",
+      descriptionOptional: "Description (optional)",
+      public: "Public",
+      addConfig: "Add Configuration",
+      listTitle: "System Configurations",
+      loadError: "Configurations could not be loaded",
+      createError: "Configuration could not be added",
+      deleteConfirm: "Delete configuration?",
+      deleteError: "Configuration could not be deleted",
+    },
+    keys: {
+      title: "API Keys Management",
+      description: "Manage LiteLLM API keys, track usage and expiry",
+      addTitle: "Add New API Key",
+      name: "Key Name",
+      keyValue: "API Key Value",
+      alias: "Key Alias (optional)",
+      maxBudget: "Maximum Budget ($)",
+      usageLimit: "Usage Limit",
+      expiresAt: "Expiry Date",
+      listTitle: "API Keys",
+      aliasLabel: "Alias",
+      spend: "Spend",
+      budget: "Budget",
+      usage: "Usage",
+      expires: "Expires",
+      lastUsed: "Last Used",
+      daysLeft: "days left",
+      expired: "Expired",
+      expiringSoon: "Expiring Soon",
+      neverExpires: "Never Expires",
+      noLimit: "No Limit",
+      unlimited: "Unlimited",
+      totalKeys: "Total Keys",
+      activeKeys: "Active Keys",
+      totalSpend: "Total Spend",
+      expiringKeys: "Expiring Soon",
+      copyKey: "Copy Key",
+      keyCopied: "Key copied!",
+      loadError: "Keys could not be loaded",
+      addError: "Key could not be added",
+      toggleError: "Key status could not be changed",
+      deleteConfirm: "Delete key?",
+      deleteError: "Key could not be deleted",
+    },
+    audit: {
+      title: "Audit Logs",
+      description: "View admin actions and system events",
+      listTitle: "Audit Events",
+      admin: "Admin",
+      loadError: "Audit logs could not be loaded",
+    },
+  },
+  tr: {
+    appTitle: "Safe Chat Yönetici",
+    nav: {
+      dashboard: "Kontrol Paneli",
+      analytics: "Analitik",
+      users: "Kullanıcılar",
+      sessions: "Oturumlar",
+      keys: "API Anahtar Yönetimi",
+      policies: "DLP Yönetimi",
+      config: "Sistem Ayarları",
+      audit: "Audit Logları",
+      logout: "Çıkış Yap",
+    },
+    login: {
+      title: "Admin Panel",
+      description: "Yönetim paneline giriş yapın",
+      email: "Email veya kullanıcı adı",
+      password: "Parola",
+      submit: "Giriş Yap",
+      loading: "Giriş yapılıyor...",
+      failed: "Giriş başarısız",
+    },
+    common: {
+      refresh: "Yenile",
+      add: "Ekle",
+      error: "Hata",
+      active: "Aktif",
+      inactive: "Pasif",
+      enable: "Aktifleştir",
+      disable: "Pasifleştir",
+      created: "Oluşturulma",
+      userId: "Kullanıcı ID",
+      none: "Yok",
+      private: "Özel",
+      public: "Herkese Açık",
+      optional: "opsiyonel",
+      days: "gün",
+      message: "mesaj",
+      messages: "mesaj",
+    },
+    language: {
+      title: "Dil",
+      description: "Admin panel dilini seçin. Bu ayar tüm admin menülerinde ve sayfalarında uygulanır.",
+      label: "Admin dili",
+      english: "İngilizce",
+      turkish: "Türkçe",
+    },
+    dashboard: {
+      title: "Kontrol Paneli",
+      description: "Sistem özeti ve istatistikler",
+      totalUsers: "Toplam Kullanıcı",
+      activeUsers: "Aktif",
+      totalSessions: "Toplam Oturum",
+      avgDuration: "Ortalama süre",
+      totalMessages: "Toplam Mesaj",
+      lastPeriod: "Son {{days}} gün",
+      dlpViolations: "DLP İhlalleri",
+      totalDetected: "Toplam tespit edilen",
+      recentUsers: "Son Kullanıcılar",
+      activePolicies: "Aktif Politikalar",
+    },
+    analytics: {
+      title: "DLP Analitikleri",
+      description: "Kullanıcı bazlı DLP ihlalleri ve oturum analitikleri",
+    },
+    users: {
+      title: "Kullanıcı Yönetimi",
+      description: "Kullanıcıları görüntüle ve yönet",
+      search: "Kullanıcı ara...",
+      addTitle: "Yeni Kullanıcı Ekle",
+      email: "Email",
+      username: "Kullanıcı Adı",
+      password: "Parola",
+      listTitle: "Kullanıcılar",
+      failedAttempts: "Başarısız",
+      loadError: "Kullanıcılar yüklenemedi",
+      createError: "Kullanıcı oluşturulamadı",
+      deleteConfirm: "Kullanıcı silinsin mi?",
+      deleteError: "Kullanıcı silinemedi",
+    },
+    sessions: {
+      title: "Oturum Yönetimi",
+      description: "Tüm kullanıcı oturumlarını görüntüle ve yönet",
+      search: "Oturum ara...",
+      listTitle: "Oturumlar",
+      untitled: "Başlıksız Oturum",
+      pinned: "Sabitlenmiş",
+      archived: "Arşivlenmiş",
+      loadError: "Oturumlar yüklenemedi",
+      archiveError: "Oturum arşivlenemedi",
+      deleteConfirm: "Oturum silinsin mi?",
+      deleteError: "Oturum silinemedi",
+      messagesError: "Mesajlar yüklenemedi",
+    },
+    settings: {
+      title: "Sistem Ayarları",
+      description: "Sistem konfigürasyonlarını yönet",
+      addTitle: "Yeni Konfigürasyon Ekle",
+      key: "Anahtar",
+      value: "Değer",
+      descriptionField: "Açıklama",
+      descriptionOptional: "Açıklama (opsiyonel)",
+      public: "Herkese açık",
+      addConfig: "Konfigürasyon Ekle",
+      listTitle: "Sistem Konfigürasyonları",
+      loadError: "Konfigürasyonlar yüklenemedi",
+      createError: "Konfigürasyon eklenemedi",
+      deleteConfirm: "Konfigürasyon silinsin mi?",
+      deleteError: "Konfigürasyon silinemedi",
+    },
+    keys: {
+      title: "API Anahtar Yönetimi",
+      description: "LiteLLM API anahtarlarını yönet, kullanım ve süresi takip et",
+      addTitle: "Yeni API Anahtarı Ekle",
+      name: "Anahtar Adı",
+      keyValue: "API Anahtar Değeri",
+      alias: "Anahtar Takma Adı (opsiyonel)",
+      maxBudget: "Maksimum Bütçe ($)",
+      usageLimit: "Kullanım Limiti",
+      expiresAt: "Son Kullanım Tarihi",
+      listTitle: "API Anahtarları",
+      aliasLabel: "Takma ad",
+      spend: "Harcama",
+      budget: "Bütçe",
+      usage: "Kullanım",
+      expires: "Bitiş",
+      lastUsed: "Son Kullanım",
+      daysLeft: "gün kaldı",
+      expired: "Süresi Dolmuş",
+      expiringSoon: "Süresi Yakında Dolacak",
+      neverExpires: "Süresiz",
+      noLimit: "Limitsiz",
+      unlimited: "Sınırsız",
+      totalKeys: "Toplam Anahtar",
+      activeKeys: "Aktif Anahtarlar",
+      totalSpend: "Toplam Harcama",
+      expiringKeys: "Süresi Yaklaşanlar",
+      copyKey: "Anahtarı Kopyala",
+      keyCopied: "Anahtar kopyalandı!",
+      loadError: "Anahtarlar yüklenemedi",
+      addError: "Anahtar eklenemedi",
+      toggleError: "Anahtar durumu değiştirilemedi",
+      deleteConfirm: "Anahtar silinsin mi?",
+      deleteError: "Anahtar silinemedi",
+    },
+    audit: {
+      title: "Audit Logları",
+      description: "Admin eylemlerini ve sistem olaylarını görüntüle",
+      listTitle: "Audit Olayları",
+      admin: "Admin",
+      loadError: "Audit logları yüklenemedi",
+    },
+  },
+} as const;
 
 // Enhanced Types
 interface User {
@@ -95,12 +410,22 @@ interface DlpPolicy {
 
 interface LiteLLMKey {
   id: string;
-  key_name: string;
+  key_value: string;
+  key_prefix: string;
+  key_name?: string;
   key_alias?: string;
-  spend?: number;
-  max_budget?: number;
   is_active: boolean;
+  expires_at?: string;
+  days_until_expiry?: number;
+  expiry_status: "active" | "expired" | "expiring_soon";
+  max_budget?: number;
+  spend: number;
+  budget_usage_pct?: number;
+  usage_count: number;
+  usage_limit?: number;
+  last_used_at?: string;
   created_at: string;
+  updated_at?: string;
 }
 
 interface SystemConfig {
@@ -151,6 +476,10 @@ interface AdminProps {
 }
 
 export default function Admin({ theme, toggleTheme }: AdminProps) {
+  const locale: AdminLocale = "en";
+  const copy = adminCopy.en;
+  const dateLocale = "en-US";
+
   const [activeTab, setActiveTab] = useState<
     | "dashboard"
     | "users"
@@ -181,8 +510,11 @@ export default function Admin({ theme, toggleTheme }: AdminProps) {
   // Forms
   const [keyForm, setKeyForm] = useState({
     key_name: "",
+    key_value: "",
     key_alias: "",
     max_budget: "",
+    usage_limit: "",
+    expires_at: "",
   });
   const [policyForm, setPolicyForm] = useState({
     name: "",
@@ -228,7 +560,7 @@ export default function Admin({ theme, toggleTheme }: AdminProps) {
       const r = await axiosWithAuth.get(`${API}/admin/users`);
       setUsers(r.data);
     } catch (e: any) {
-      const errorMsg = e.response?.data?.detail || e.message || "Kullanıcılar yüklenemedi";
+      const errorMsg = e.response?.data?.detail || e.message || copy.users.loadError;
       setError('users', errorMsg);
       console.error("Kullanıcılar yüklenemedi:", e);
     } finally {
@@ -243,7 +575,7 @@ export default function Admin({ theme, toggleTheme }: AdminProps) {
       const r = await axiosWithAuth.get(`${API}/admin/sessions`);
       setSessions(r.data.sessions || []);
     } catch (e: any) {
-      const errorMsg = e.response?.data?.detail || e.message || "Oturumlar yüklenemedi";
+      const errorMsg = e.response?.data?.detail || e.message || copy.sessions.loadError;
       setError('sessions', errorMsg);
       console.error("Oturumlar yüklenemedi:", e);
     } finally {
@@ -258,7 +590,7 @@ export default function Admin({ theme, toggleTheme }: AdminProps) {
       const r = await axiosWithAuth.get(`${API}/admin/keys`);
       setKeys(r.data);
     } catch (e: any) {
-      const errorMsg = e.response?.data?.detail || e.message || "Anahtarlar yüklenemedi";
+      const errorMsg = e.response?.data?.detail || e.message || copy.keys.loadError;
       setError('keys', errorMsg);
       console.error("Anahtarlar yüklenemedi:", e);
     } finally {
@@ -273,7 +605,7 @@ export default function Admin({ theme, toggleTheme }: AdminProps) {
       const r = await axiosWithAuth.get(`${API}/admin/policies`);
       setPolicies(r.data);
     } catch (e: any) {
-      const errorMsg = e.response?.data?.detail || e.message || "Politikalar yüklenemedi";
+      const errorMsg = e.response?.data?.detail || e.message || "Policies could not be loaded";
       setError('policies', errorMsg);
       console.error("Politikalar yüklenemedi:", e);
     } finally {
@@ -288,7 +620,7 @@ export default function Admin({ theme, toggleTheme }: AdminProps) {
       const r = await axiosWithAuth.get(`${API}/admin/config`);
       setConfigs(r.data);
     } catch (e: any) {
-      const errorMsg = e.response?.data?.detail || e.message || "Konfigürasyonlar yüklenemedi";
+      const errorMsg = e.response?.data?.detail || e.message || copy.settings.loadError;
       setError('configs', errorMsg);
       console.error("Konfigürasyonlar yüklenemedi:", e);
     } finally {
@@ -303,7 +635,7 @@ export default function Admin({ theme, toggleTheme }: AdminProps) {
       const r = await axiosWithAuth.get(`${API}/admin/audit`);
       setAuditEvents(r.data.events || []);
     } catch (e: any) {
-      const errorMsg = e.response?.data?.detail || e.message || "Audit logları yüklenemedi";
+      const errorMsg = e.response?.data?.detail || e.message || copy.audit.loadError;
       setError('audit', errorMsg);
       console.error("Audit logları yüklenemedi:", e);
     } finally {
@@ -318,7 +650,7 @@ export default function Admin({ theme, toggleTheme }: AdminProps) {
       const r = await axiosWithAuth.get(`${API}/admin/analytics/overview`);
       setAnalytics(r.data);
     } catch (e: any) {
-      const errorMsg = e.response?.data?.detail || e.message || "Analitikler yüklenemedi";
+      const errorMsg = e.response?.data?.detail || e.message || "Analytics could not be loaded";
       setError('analytics', errorMsg);
       console.error("Analitikler yüklenemedi:", e);
     } finally {
@@ -330,6 +662,7 @@ export default function Admin({ theme, toggleTheme }: AdminProps) {
     const t =
       typeof window !== "undefined" ? localStorage.getItem("auth_token") : null;
     if (t) setIsLoggedIn(true);
+    localStorage.setItem("admin_language", "en");
   }, []);
 
   useEffect(() => {
@@ -352,7 +685,7 @@ export default function Admin({ theme, toggleTheme }: AdminProps) {
       setIsLoggedIn(true);
       setLoginForm({ email_or_username: "", password: "" });
     } catch (e) {
-      alert("Giriş başarısız");
+      alert(copy.login.failed);
     } finally {
       setLoading(false);
     }
@@ -379,20 +712,20 @@ export default function Admin({ theme, toggleTheme }: AdminProps) {
       setForm({ email: "", username: "", password: "" });
       loadUsers();
     } catch (e) {
-      alert("Kullanıcı oluşturulamadı");
+      alert(copy.users.createError);
     } finally {
       setLoading(false);
     }
   };
 
   const deleteUser = async (id: string) => {
-    if (!confirm("Kullanıcı silinsin mi?")) return;
+    if (!confirm(copy.users.deleteConfirm)) return;
     try {
       await axiosWithAuth.delete(`${API}/admin/users/${id}`);
       loadUsers();
       loadSessions();
     } catch (e) {
-      alert("Kullanıcı silinemedi");
+      alert(copy.users.deleteError);
     }
   };
 
@@ -404,17 +737,17 @@ export default function Admin({ theme, toggleTheme }: AdminProps) {
       });
       loadSessions();
     } catch (e) {
-      alert("Oturum arşivlenemedi");
+      alert(copy.sessions.archiveError);
     }
   };
 
   const deleteSession = async (sessionId: string) => {
-    if (!confirm("Oturum silinsin mi?")) return;
+    if (!confirm(copy.sessions.deleteConfirm)) return;
     try {
       await axiosWithAuth.delete(`${API}/admin/sessions/${sessionId}`);
       loadSessions();
     } catch (e) {
-      alert("Oturum silinemedi");
+      alert(copy.sessions.deleteError);
     }
   };
 
@@ -426,7 +759,7 @@ export default function Admin({ theme, toggleTheme }: AdminProps) {
       );
       setMessages(r.data);
     } catch (e) {
-      console.error("Mesajlar yüklenemedi:", e);
+      console.error(copy.sessions.messagesError, e);
     }
   };
 
@@ -435,18 +768,23 @@ export default function Admin({ theme, toggleTheme }: AdminProps) {
     e.preventDefault();
     setLoading(true);
     try {
-      const payload = {
-        key_name: keyForm.key_name,
+      const payload: any = {
+        key_value: keyForm.key_value,
+        key_name: keyForm.key_name || undefined,
         key_alias: keyForm.key_alias || undefined,
         max_budget: keyForm.max_budget
           ? parseFloat(keyForm.max_budget)
           : undefined,
+        usage_limit: keyForm.usage_limit
+          ? parseInt(keyForm.usage_limit)
+          : undefined,
+        expires_at: keyForm.expires_at || undefined,
       };
       await axiosWithAuth.post(`${API}/admin/keys`, payload);
-      setKeyForm({ key_name: "", key_alias: "", max_budget: "" });
+      setKeyForm({ key_name: "", key_value: "", key_alias: "", max_budget: "", usage_limit: "", expires_at: "" });
       loadKeys();
     } catch (e) {
-      alert("Anahtar eklenemedi");
+      alert(copy.keys.addError);
     } finally {
       setLoading(false);
     }
@@ -459,17 +797,17 @@ export default function Admin({ theme, toggleTheme }: AdminProps) {
       });
       loadKeys();
     } catch (e) {
-      alert("Anahtar durumu değiştirilemedi");
+      alert(copy.keys.toggleError);
     }
   };
 
   const deleteKey = async (id: string) => {
-    if (!confirm("Anahtar silinsin mi?")) return;
+    if (!confirm(copy.keys.deleteConfirm)) return;
     try {
       await axiosWithAuth.delete(`${API}/admin/keys/${id}`);
       loadKeys();
     } catch (e) {
-      alert("Anahtar silinemedi");
+      alert(copy.keys.deleteError);
     }
   };
 
@@ -540,19 +878,19 @@ export default function Admin({ theme, toggleTheme }: AdminProps) {
       });
       loadConfigs();
     } catch (e) {
-      alert("Konfigürasyon eklenemedi");
+      alert(copy.settings.createError);
     } finally {
       setLoading(false);
     }
   };
 
   const deleteConfig = async (id: string) => {
-    if (!confirm("Konfigürasyon silinsin mi?")) return;
+    if (!confirm(copy.settings.deleteConfirm)) return;
     try {
       await axiosWithAuth.delete(`${API}/admin/config/${id}`);
       loadConfigs();
     } catch (e) {
-      alert("Konfigürasyon silinemedi");
+      alert(copy.settings.deleteError);
     }
   };
 
@@ -561,15 +899,15 @@ export default function Admin({ theme, toggleTheme }: AdminProps) {
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/10 to-accent/20 dark:from-gray-900 dark:to-gray-800">
         <Card className="w-full max-w-md">
           <CardHeader className="space-y-1">
-            <CardTitle className="text-2xl text-center">Admin Panel</CardTitle>
+            <CardTitle className="text-2xl text-center">{copy.login.title}</CardTitle>
             <CardDescription className="text-center">
-              Yönetim paneline giriş yapın
+              {copy.login.description}
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="space-y-2">
               <Input
-                placeholder="Email veya Kullanıcı Adı"
+                placeholder={copy.login.email}
                 value={loginForm.email_or_username}
                 onChange={(e) =>
                   setLoginForm({
@@ -581,7 +919,7 @@ export default function Admin({ theme, toggleTheme }: AdminProps) {
             </div>
             <div className="space-y-2">
               <Input
-                placeholder="Parola"
+                placeholder={copy.login.password}
                 type="password"
                 value={loginForm.password}
                 onChange={(e) =>
@@ -591,7 +929,7 @@ export default function Admin({ theme, toggleTheme }: AdminProps) {
               />
             </div>
             <Button onClick={doLogin} className="w-full" disabled={loading}>
-              {loading ? "Giriş yapılıyor..." : "Giriş Yap"}
+              {loading ? copy.login.loading : copy.login.submit}
             </Button>
           </CardContent>
         </Card>
@@ -606,7 +944,7 @@ export default function Admin({ theme, toggleTheme }: AdminProps) {
         <div className="flex h-16 items-center px-6">
           <div className="flex items-center space-x-4">
             <Shield className="h-8 w-8 text-primary" />
-            <h1 className="text-xl font-semibold">Safe Chat Admin</h1>
+            <h1 className="text-xl font-semibold">{copy.appTitle}</h1>
           </div>
 
           <div className="ml-auto flex items-center space-x-4">
@@ -619,7 +957,7 @@ export default function Admin({ theme, toggleTheme }: AdminProps) {
             </Button>
             <Button variant="outline" onClick={logout}>
               <LogOut className="h-4 w-4 mr-2" />
-              Logout
+              {copy.nav.logout}
             </Button>
           </div>
         </div>
@@ -635,7 +973,7 @@ export default function Admin({ theme, toggleTheme }: AdminProps) {
               onClick={() => setActiveTab("dashboard")}
             >
               <BarChart3 className="h-4 w-4 mr-2" />
-              Dashboard
+              {copy.nav.dashboard}
             </Button>
             <Button
               variant={activeTab === "analytics" ? "default" : "ghost"}
@@ -643,7 +981,7 @@ export default function Admin({ theme, toggleTheme }: AdminProps) {
               onClick={() => setActiveTab("analytics")}
             >
               <TrendingUp className="h-4 w-4 mr-2" />
-                Analytics
+              {copy.nav.analytics}
             </Button>
             <Button
               variant={activeTab === "users" ? "default" : "ghost"}
@@ -651,7 +989,7 @@ export default function Admin({ theme, toggleTheme }: AdminProps) {
               onClick={() => setActiveTab("users")}
             >
               <Users className="h-4 w-4 mr-2" />
-              Users
+              {copy.nav.users}
             </Button>
             <Button
               variant={activeTab === "sessions" ? "default" : "ghost"}
@@ -659,7 +997,7 @@ export default function Admin({ theme, toggleTheme }: AdminProps) {
               onClick={() => setActiveTab("sessions")}
             >
               <MessageSquare className="h-4 w-4 mr-2" />
-              Sessions
+              {copy.nav.sessions}
             </Button>
             <Button
               variant={activeTab === "keys" ? "default" : "ghost"}
@@ -667,7 +1005,7 @@ export default function Admin({ theme, toggleTheme }: AdminProps) {
               onClick={() => setActiveTab("keys")}
             >
               <Key className="h-4 w-4 mr-2" />
-              API Keys
+              {copy.nav.keys}
             </Button>
             <Button
               variant={activeTab === "policies" ? "default" : "ghost"}
@@ -675,7 +1013,7 @@ export default function Admin({ theme, toggleTheme }: AdminProps) {
               onClick={() => setActiveTab("policies")}
             >
               <Shield className="h-4 w-4 mr-2" />
-              DLP Management
+              {copy.nav.policies}
             </Button>
             <Button
               variant={activeTab === "config" ? "default" : "ghost"}
@@ -683,7 +1021,7 @@ export default function Admin({ theme, toggleTheme }: AdminProps) {
               onClick={() => setActiveTab("config")}
             >
               <Settings className="h-4 w-4 mr-2" />
-              System Settings
+              {copy.nav.config}
             </Button>
             <Button
               variant={activeTab === "audit" ? "default" : "ghost"}
@@ -691,7 +1029,7 @@ export default function Admin({ theme, toggleTheme }: AdminProps) {
               onClick={() => setActiveTab("audit")}
             >
               <Database className="h-4 w-4 mr-2" />
-              Audit Logs
+              {copy.nav.audit}
             </Button>
           </nav>
         </aside>
@@ -701,9 +1039,9 @@ export default function Admin({ theme, toggleTheme }: AdminProps) {
           {activeTab === "dashboard" && (
             <div className="space-y-6">
               <div>
-                <h2 className="text-3xl font-bold tracking-tight">Dashboard</h2>
+                <h2 className="text-3xl font-bold tracking-tight">{copy.dashboard.title}</h2>
                 <p className="text-muted-foreground">
-                  System overview and statistics
+                  {copy.dashboard.description}
                 </p>
               </div>
 
@@ -713,7 +1051,7 @@ export default function Admin({ theme, toggleTheme }: AdminProps) {
                   <Card>
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                       <CardTitle className="text-sm font-medium">
-                        Toplam Kullanıcı
+                        {copy.dashboard.totalUsers}
                       </CardTitle>
                       <Users className="h-4 w-4 text-muted-foreground" />
                     </CardHeader>
@@ -722,7 +1060,7 @@ export default function Admin({ theme, toggleTheme }: AdminProps) {
                         {analytics.total_users}
                       </div>
                       <p className="text-xs text-muted-foreground">
-                        Aktif: {analytics.active_users} (%
+                        {copy.dashboard.activeUsers}: {analytics.active_users} (%
                         {analytics.user_activity_rate})
                       </p>
                     </CardContent>
@@ -731,7 +1069,7 @@ export default function Admin({ theme, toggleTheme }: AdminProps) {
                   <Card>
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                       <CardTitle className="text-sm font-medium">
-                        Toplam Oturum
+                        {copy.dashboard.totalSessions}
                       </CardTitle>
                       <Activity className="h-4 w-4 text-muted-foreground" />
                     </CardHeader>
@@ -740,7 +1078,7 @@ export default function Admin({ theme, toggleTheme }: AdminProps) {
                         {analytics.total_sessions}
                       </div>
                       <p className="text-xs text-muted-foreground">
-                        Ortalama süre: {analytics.avg_session_duration} dk
+                        {copy.dashboard.avgDuration}: {analytics.avg_session_duration} dk
                       </p>
                     </CardContent>
                   </Card>
@@ -748,7 +1086,7 @@ export default function Admin({ theme, toggleTheme }: AdminProps) {
                   <Card>
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                       <CardTitle className="text-sm font-medium">
-                        Toplam Mesaj
+                        {copy.dashboard.totalMessages}
                       </CardTitle>
                       <MessageSquare className="h-4 w-4 text-muted-foreground" />
                     </CardHeader>
@@ -757,7 +1095,7 @@ export default function Admin({ theme, toggleTheme }: AdminProps) {
                         {analytics.total_messages}
                       </div>
                       <p className="text-xs text-muted-foreground">
-                        Son {analytics.period_days} gün
+                        {copy.dashboard.lastPeriod.replace("{{days}}", String(analytics.period_days))}
                       </p>
                     </CardContent>
                   </Card>
@@ -765,7 +1103,7 @@ export default function Admin({ theme, toggleTheme }: AdminProps) {
                   <Card>
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                       <CardTitle className="text-sm font-medium">
-                        DLP İhlalleri
+                        {copy.dashboard.dlpViolations}
                       </CardTitle>
                       <AlertTriangle className="h-4 w-4 text-muted-foreground" />
                     </CardHeader>
@@ -774,7 +1112,7 @@ export default function Admin({ theme, toggleTheme }: AdminProps) {
                         {analytics.total_dlp_violations}
                       </div>
                       <p className="text-xs text-muted-foreground">
-                        Toplam tespit edilen
+                        {copy.dashboard.totalDetected}
                       </p>
                     </CardContent>
                   </Card>
@@ -785,7 +1123,7 @@ export default function Admin({ theme, toggleTheme }: AdminProps) {
               <div className="grid gap-4 md:grid-cols-2">
                 <Card>
                   <CardHeader>
-                    <CardTitle>Son Kullanıcılar</CardTitle>
+                    <CardTitle>{copy.dashboard.recentUsers}</CardTitle>
                   </CardHeader>
                   <CardContent>
                     <div className="space-y-4">
@@ -822,7 +1160,7 @@ export default function Admin({ theme, toggleTheme }: AdminProps) {
 
                 <Card>
                   <CardHeader>
-                    <CardTitle>Aktif Politikalar</CardTitle>
+                    <CardTitle>{copy.dashboard.activePolicies}</CardTitle>
                   </CardHeader>
                   <CardContent>
                     <div className="space-y-4">
@@ -870,15 +1208,15 @@ export default function Admin({ theme, toggleTheme }: AdminProps) {
               <div className="flex items-center justify-between">
                 <div>
                   <h2 className="text-3xl font-bold tracking-tight">
-                    DLP Analitikleri
+                    {copy.analytics.title}
                   </h2>
                   <p className="text-muted-foreground">
-                    Kullanıcı bazlı DLP ihlalleri ve session analitikleri
+                    {copy.analytics.description}
                   </p>
                 </div>
               </div>
 
-              <DLPAnalyticsDashboard />
+              <DLPAnalyticsDashboard locale={locale} />
             </div>
           )}
 
@@ -887,15 +1225,15 @@ export default function Admin({ theme, toggleTheme }: AdminProps) {
               <div className="flex items-center justify-between">
                 <div>
                   <h2 className="text-3xl font-bold tracking-tight">
-                    Kullanıcı Yönetimi
+                    {copy.users.title}
                   </h2>
                   <p className="text-muted-foreground">
-                    Kullanıcıları görüntüle ve yönet
+                    {copy.users.description}
                   </p>
                 </div>
                 <div className="flex items-center space-x-2">
                   <Input
-                    placeholder="Kullanıcı ara..."
+                    placeholder={copy.users.search}
                     value={userFilter}
                     onChange={(e) => setUserFilter(e.target.value)}
                     className="w-64"
@@ -912,7 +1250,7 @@ export default function Admin({ theme, toggleTheme }: AdminProps) {
                   <CardContent className="pt-6">
                     <div className="flex items-center space-x-2 text-red-600">
                       <AlertTriangle className="h-4 w-4" />
-                      <span className="text-sm font-medium">Hata: {errors.users}</span>
+                      <span className="text-sm font-medium">{copy.common.error}: {errors.users}</span>
                     </div>
                   </CardContent>
                 </Card>
@@ -921,12 +1259,12 @@ export default function Admin({ theme, toggleTheme }: AdminProps) {
               {/* Add User Form */}
               <Card>
                 <CardHeader>
-                  <CardTitle>Yeni Kullanıcı Ekle</CardTitle>
+                  <CardTitle>{copy.users.addTitle}</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <form onSubmit={submitUser} className="flex gap-4">
                     <Input
-                      placeholder="Email"
+                      placeholder={copy.users.email}
                       value={form.email}
                       onChange={(e) =>
                         setForm({ ...form, email: e.target.value })
@@ -934,7 +1272,7 @@ export default function Admin({ theme, toggleTheme }: AdminProps) {
                       required
                     />
                     <Input
-                      placeholder="Kullanıcı Adı"
+                      placeholder={copy.users.username}
                       value={form.username}
                       onChange={(e) =>
                         setForm({ ...form, username: e.target.value })
@@ -942,7 +1280,7 @@ export default function Admin({ theme, toggleTheme }: AdminProps) {
                       required
                     />
                     <Input
-                      placeholder="Parola"
+                      placeholder={copy.users.password}
                       type="password"
                       value={form.password}
                       onChange={(e) =>
@@ -952,7 +1290,7 @@ export default function Admin({ theme, toggleTheme }: AdminProps) {
                     />
                     <Button type="submit" disabled={loading}>
                       <Plus className="h-4 w-4 mr-2" />
-                      Ekle
+                      {copy.common.add}
                     </Button>
                   </form>
                 </CardContent>
@@ -961,7 +1299,7 @@ export default function Admin({ theme, toggleTheme }: AdminProps) {
               {/* Users List */}
               <Card>
                 <CardHeader>
-                  <CardTitle>Kullanıcılar ({users.length})</CardTitle>
+                  <CardTitle>{copy.users.listTitle} ({users.length})</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-4">
@@ -1011,7 +1349,7 @@ export default function Admin({ theme, toggleTheme }: AdminProps) {
                             </Badge>
                             {user.failed_login_attempts > 0 && (
                               <Badge variant="destructive">
-                                Başarısız: {user.failed_login_attempts}
+                                {copy.users.failedAttempts}: {user.failed_login_attempts}
                               </Badge>
                             )}
                             <Button
@@ -1042,15 +1380,15 @@ export default function Admin({ theme, toggleTheme }: AdminProps) {
               <div className="flex items-center justify-between">
                 <div>
                   <h2 className="text-3xl font-bold tracking-tight">
-                    Oturum Yönetimi
+                    {copy.sessions.title}
                   </h2>
                   <p className="text-muted-foreground">
-                    Tüm kullanıcı oturumlarını görüntüle ve yönet
+                    {copy.sessions.description}
                   </p>
                 </div>
                 <div className="flex items-center space-x-2">
                   <Input
-                    placeholder="Oturum ara..."
+                    placeholder={copy.sessions.search}
                     value={sessionFilter}
                     onChange={(e) => setSessionFilter(e.target.value)}
                     className="w-64"
@@ -1067,7 +1405,7 @@ export default function Admin({ theme, toggleTheme }: AdminProps) {
                   <CardContent className="pt-6">
                     <div className="flex items-center space-x-2 text-red-600">
                       <AlertTriangle className="h-4 w-4" />
-                      <span className="text-sm font-medium">Hata: {errors.sessions}</span>
+                      <span className="text-sm font-medium">{copy.common.error}: {errors.sessions}</span>
                     </div>
                   </CardContent>
                 </Card>
@@ -1076,7 +1414,7 @@ export default function Admin({ theme, toggleTheme }: AdminProps) {
               {/* Sessions List */}
               <Card>
                 <CardHeader>
-                  <CardTitle>Oturumlar ({sessions.length})</CardTitle>
+                  <CardTitle>{copy.sessions.listTitle} ({sessions.length})</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-4">
@@ -1096,24 +1434,24 @@ export default function Admin({ theme, toggleTheme }: AdminProps) {
                               <MessageSquare className="h-5 w-5 text-primary" />
                             </div>
                             <div>
-                              <p className="font-medium">{session.title || "Başlıksız Oturum"}</p>
+                              <p className="font-medium">{session.title || copy.sessions.untitled}</p>
                               <p className="text-sm text-muted-foreground">
-                                Kullanıcı ID: {session.user_id}
+                                {copy.common.userId}: {session.user_id}
                               </p>
                               <p className="text-xs text-muted-foreground">
-                                Oluşturulma:{" "}
+                                {copy.common.created}:{" "}
                                 {new Date(session.created_at).toLocaleDateString(
-                                  "tr-TR"
+                                  dateLocale
                                 )}
                               </p>
                             </div>
                           </div>
                           <div className="flex items-center space-x-2">
                             {session.pinned && (
-                              <Badge variant="outline">Sabitlenmiş</Badge>
+                              <Badge variant="outline">{copy.sessions.pinned}</Badge>
                             )}
                             {session.is_archived && (
-                              <Badge variant="secondary">Arşivlenmiş</Badge>
+                              <Badge variant="secondary">{copy.sessions.archived}</Badge>
                             )}
                             {session.tags && session.tags.length > 0 && (
                               <Badge variant="outline">
@@ -1152,7 +1490,7 @@ export default function Admin({ theme, toggleTheme }: AdminProps) {
           )}
 
           {activeTab === "policies" && (
-            <DLPDashboard />
+            <DLPDashboard locale={locale} />
           )}
 
           {activeTab === "config" && (
@@ -1160,15 +1498,15 @@ export default function Admin({ theme, toggleTheme }: AdminProps) {
               <div className="flex items-center justify-between">
                 <div>
                   <h2 className="text-3xl font-bold tracking-tight">
-                    Sistem Ayarları
+                    {copy.settings.title}
                   </h2>
                   <p className="text-muted-foreground">
-                    Sistem konfigürasyonlarını yönet
+                    {copy.settings.description}
                   </p>
                 </div>
                 <Button onClick={loadConfigs} disabled={loadingStates.configs}>
                   <RefreshCw className={`h-4 w-4 mr-2 ${loadingStates.configs ? 'animate-spin' : ''}`} />
-                  Yenile
+                  {copy.common.refresh}
                 </Button>
               </div>
 
@@ -1178,7 +1516,7 @@ export default function Admin({ theme, toggleTheme }: AdminProps) {
                   <CardContent className="pt-6">
                     <div className="flex items-center space-x-2 text-red-600">
                       <AlertTriangle className="h-4 w-4" />
-                      <span className="text-sm font-medium">Hata: {errors.configs}</span>
+                      <span className="text-sm font-medium">{copy.common.error}: {errors.configs}</span>
                     </div>
                   </CardContent>
                 </Card>
@@ -1187,13 +1525,13 @@ export default function Admin({ theme, toggleTheme }: AdminProps) {
               {/* Add Config Form */}
               <Card>
                 <CardHeader>
-                  <CardTitle>Yeni Konfigürasyon Ekle</CardTitle>
+                  <CardTitle>{copy.settings.addTitle}</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <form onSubmit={addConfig} className="space-y-4">
                     <div className="grid gap-4 md:grid-cols-2">
                       <Input
-                        placeholder="Anahtar"
+                        placeholder={copy.settings.key}
                         value={configForm.key}
                         onChange={(e) =>
                           setConfigForm({ ...configForm, key: e.target.value })
@@ -1201,7 +1539,7 @@ export default function Admin({ theme, toggleTheme }: AdminProps) {
                         required
                       />
                       <Input
-                        placeholder="Değer"
+                        placeholder={copy.settings.value}
                         value={configForm.value}
                         onChange={(e) =>
                           setConfigForm({
@@ -1229,7 +1567,7 @@ export default function Admin({ theme, toggleTheme }: AdminProps) {
                         <option value="json">JSON</option>
                       </select>
                       <Input
-                        placeholder="Açıklama (opsiyonel)"
+                        placeholder={copy.settings.descriptionOptional}
                         value={configForm.description}
                         onChange={(e) =>
                           setConfigForm({
@@ -1251,13 +1589,13 @@ export default function Admin({ theme, toggleTheme }: AdminProps) {
                           }
                         />
                         <label htmlFor="is_public" className="text-sm">
-                          Herkese açık
+                          {copy.settings.public}
                         </label>
                       </div>
                     </div>
                     <Button type="submit" disabled={loading}>
                       <Plus className="h-4 w-4 mr-2" />
-                      Konfigürasyon Ekle
+                      {copy.settings.addConfig}
                     </Button>
                   </form>
                 </CardContent>
@@ -1267,7 +1605,7 @@ export default function Admin({ theme, toggleTheme }: AdminProps) {
               <Card>
                 <CardHeader>
                   <CardTitle>
-                    Sistem Konfigürasyonları ({configs.length})
+                    {copy.settings.listTitle} ({configs.length})
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
@@ -1297,7 +1635,7 @@ export default function Admin({ theme, toggleTheme }: AdminProps) {
                           <Badge
                             variant={config.is_public ? "default" : "secondary"}
                           >
-                            {config.is_public ? "Herkese Açık" : "Özel"}
+                            {config.is_public ? copy.common.public : copy.common.private}
                           </Badge>
                           <Button
                             variant="destructive"
@@ -1320,15 +1658,15 @@ export default function Admin({ theme, toggleTheme }: AdminProps) {
               <div className="flex items-center justify-between">
                 <div>
                   <h2 className="text-3xl font-bold tracking-tight">
-                    API Anahtar Yönetimi
+                    {copy.keys.title}
                   </h2>
                   <p className="text-muted-foreground">
-                    LiteLLM API anahtarlarını yönet
+                    {copy.keys.description}
                   </p>
                 </div>
                 <Button onClick={loadKeys} disabled={loadingStates.keys}>
                   <RefreshCw className={`h-4 w-4 mr-2 ${loadingStates.keys ? 'animate-spin' : ''}`} />
-                  Yenile
+                  {copy.common.refresh}
                 </Button>
               </div>
 
@@ -1338,45 +1676,121 @@ export default function Admin({ theme, toggleTheme }: AdminProps) {
                   <CardContent className="pt-6">
                     <div className="flex items-center space-x-2 text-red-600">
                       <AlertTriangle className="h-4 w-4" />
-                      <span className="text-sm font-medium">Hata: {errors.keys}</span>
+                      <span className="text-sm font-medium">{copy.common.error}: {errors.keys}</span>
                     </div>
                   </CardContent>
                 </Card>
               )}
 
+              {/* Summary Stats */}
+              <div className="grid gap-4 md:grid-cols-4">
+                <Card>
+                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <CardTitle className="text-sm font-medium">{copy.keys.totalKeys}</CardTitle>
+                    <Key className="h-4 w-4 text-muted-foreground" />
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-2xl font-bold">{keys.length}</div>
+                  </CardContent>
+                </Card>
+                <Card>
+                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <CardTitle className="text-sm font-medium">{copy.keys.activeKeys}</CardTitle>
+                    <CheckCircle className="h-4 w-4 text-green-500" />
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-2xl font-bold text-green-600">
+                      {keys.filter(k => k.is_active && k.expiry_status !== "expired").length}
+                    </div>
+                  </CardContent>
+                </Card>
+                <Card>
+                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <CardTitle className="text-sm font-medium">{copy.keys.totalSpend}</CardTitle>
+                    <DollarSign className="h-4 w-4 text-muted-foreground" />
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-2xl font-bold">
+                      ${keys.reduce((sum, k) => sum + (k.spend || 0), 0).toFixed(2)}
+                    </div>
+                  </CardContent>
+                </Card>
+                <Card>
+                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <CardTitle className="text-sm font-medium">{copy.keys.expiringKeys}</CardTitle>
+                    <Clock className="h-4 w-4 text-yellow-500" />
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-2xl font-bold text-yellow-600">
+                      {keys.filter(k => k.expiry_status === "expiring_soon").length}
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+
               {/* Add Key Form */}
               <Card>
                 <CardHeader>
-                  <CardTitle>Yeni API Anahtarı Ekle</CardTitle>
+                  <CardTitle>{copy.keys.addTitle}</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <form onSubmit={addKey} className="flex gap-4">
-                    <Input
-                      placeholder="Anahtar Adı"
-                      value={keyForm.key_name}
-                      onChange={(e) =>
-                        setKeyForm({ ...keyForm, key_name: e.target.value })
-                      }
-                      required
-                    />
-                    <Input
-                      placeholder="Anahtar Takma Adı (opsiyonel)"
-                      value={keyForm.key_alias}
-                      onChange={(e) =>
-                        setKeyForm({ ...keyForm, key_alias: e.target.value })
-                      }
-                    />
-                    <Input
-                      placeholder="Maksimum Bütçe (opsiyonel)"
-                      type="number"
-                      value={keyForm.max_budget}
-                      onChange={(e) =>
-                        setKeyForm({ ...keyForm, max_budget: e.target.value })
-                      }
-                    />
+                  <form onSubmit={addKey} className="space-y-4">
+                    <div className="grid gap-4 md:grid-cols-2">
+                      <Input
+                        placeholder={copy.keys.name}
+                        value={keyForm.key_name}
+                        onChange={(e) =>
+                          setKeyForm({ ...keyForm, key_name: e.target.value })
+                        }
+                      />
+                      <Input
+                        placeholder={copy.keys.keyValue}
+                        value={keyForm.key_value}
+                        onChange={(e) =>
+                          setKeyForm({ ...keyForm, key_value: e.target.value })
+                        }
+                        required
+                      />
+                    </div>
+                    <div className="grid gap-4 md:grid-cols-4">
+                      <Input
+                        placeholder={copy.keys.alias}
+                        value={keyForm.key_alias}
+                        onChange={(e) =>
+                          setKeyForm({ ...keyForm, key_alias: e.target.value })
+                        }
+                      />
+                      <Input
+                        placeholder={copy.keys.maxBudget}
+                        type="number"
+                        step="0.01"
+                        min="0"
+                        value={keyForm.max_budget}
+                        onChange={(e) =>
+                          setKeyForm({ ...keyForm, max_budget: e.target.value })
+                        }
+                      />
+                      <Input
+                        placeholder={copy.keys.usageLimit}
+                        type="number"
+                        min="0"
+                        value={keyForm.usage_limit}
+                        onChange={(e) =>
+                          setKeyForm({ ...keyForm, usage_limit: e.target.value })
+                        }
+                      />
+                      <Input
+                        placeholder={copy.keys.expiresAt}
+                        type="datetime-local"
+                        value={keyForm.expires_at}
+                        onChange={(e) =>
+                          setKeyForm({ ...keyForm, expires_at: e.target.value })
+                        }
+                      />
+                    </div>
                     <Button type="submit" disabled={loading}>
                       <Plus className="h-4 w-4 mr-2" />
-                      Ekle
+                      {copy.common.add}
                     </Button>
                   </form>
                 </CardContent>
@@ -1385,67 +1799,193 @@ export default function Admin({ theme, toggleTheme }: AdminProps) {
               {/* Keys List */}
               <Card>
                 <CardHeader>
-                  <CardTitle>API Anahtarları ({keys.length})</CardTitle>
+                  <CardTitle>{copy.keys.listTitle} ({keys.length})</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-4">
                     {keys.map((key) => (
                       <div
                         key={key.id}
-                        className="flex items-center justify-between p-4 border rounded-lg"
+                        className={`p-4 border rounded-lg transition-colors ${
+                          key.expiry_status === "expired"
+                            ? "border-red-200 bg-red-50/50 dark:bg-red-950/20"
+                            : key.expiry_status === "expiring_soon"
+                            ? "border-yellow-200 bg-yellow-50/50 dark:bg-yellow-950/20"
+                            : "hover:bg-muted/50"
+                        }`}
                       >
-                        <div className="flex items-center space-x-4">
-                          <div className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center">
-                            <Key className="h-5 w-5 text-primary" />
+                        {/* Row 1: Name, Alias, Status, Actions */}
+                        <div className="flex items-center justify-between mb-3">
+                          <div className="flex items-center space-x-4">
+                            <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
+                              key.expiry_status === "expired"
+                                ? "bg-red-100 dark:bg-red-900/30"
+                                : key.expiry_status === "expiring_soon"
+                                ? "bg-yellow-100 dark:bg-yellow-900/30"
+                                : "bg-primary/10"
+                            }`}>
+                              <Key className={`h-5 w-5 ${
+                                key.expiry_status === "expired"
+                                  ? "text-red-500"
+                                  : key.expiry_status === "expiring_soon"
+                                  ? "text-yellow-500"
+                                  : "text-primary"
+                              }`} />
+                            </div>
+                            <div>
+                              <div className="flex items-center space-x-2">
+                                <p className="font-semibold">{key.key_name || "Unnamed Key"}</p>
+                                {key.key_alias && (
+                                  <Badge variant="outline" className="text-xs">
+                                    {key.key_alias}
+                                  </Badge>
+                                )}
+                              </div>
+                              <div className="flex items-center space-x-2 mt-0.5">
+                                <code className="text-xs bg-muted px-2 py-0.5 rounded font-mono">
+                                  {key.key_prefix}
+                                </code>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  className="h-5 w-5 p-0"
+                                  onClick={() => {
+                                    navigator.clipboard.writeText(key.key_value);
+                                  }}
+                                  title={copy.keys.copyKey}
+                                >
+                                  <Copy className="h-3 w-3" />
+                                </Button>
+                              </div>
+                            </div>
                           </div>
-                          <div>
-                            <p className="font-medium">{key.key_name}</p>
-                            {key.key_alias && (
-                              <p className="text-sm text-muted-foreground">
-                                Takma ad: {key.key_alias}
-                              </p>
-                            )}
-                            <p className="text-xs text-muted-foreground">
-                              Oluşturulma:{" "}
-                              {new Date(key.created_at).toLocaleDateString(
-                                "tr-TR"
-                              )}
-                            </p>
+                          <div className="flex items-center space-x-2">
+                            {/* Status Badge */}
+                            {key.expiry_status === "expired" ? (
+                              <Badge variant="destructive">{copy.keys.expired}</Badge>
+                            ) : key.expiry_status === "expiring_soon" ? (
+                              <Badge className="bg-yellow-500 hover:bg-yellow-600 text-white">
+                                {copy.keys.expiringSoon}
+                              </Badge>
+                            ) : null}
+                            <Badge
+                              variant={key.is_active ? "default" : "secondary"}
+                            >
+                              {key.is_active ? copy.common.active : copy.common.inactive}
+                            </Badge>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => toggleKey(key)}
+                            >
+                              {key.is_active ? copy.common.disable : copy.common.enable}
+                            </Button>
+                            <Button
+                              variant="destructive"
+                              size="sm"
+                              onClick={() => deleteKey(key.id)}
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
                           </div>
                         </div>
-                        <div className="flex items-center space-x-2">
-                          {key.spend !== undefined && (
-                            <Badge variant="outline">
-                              Harcama: ${key.spend.toFixed(2)}
-                            </Badge>
-                          )}
-                          {key.max_budget !== undefined && (
-                            <Badge variant="outline">
-                              Bütçe: ${key.max_budget.toFixed(2)}
-                            </Badge>
-                          )}
-                          <Badge
-                            variant={key.is_active ? "default" : "secondary"}
-                          >
-                            {key.is_active ? "Aktif" : "Pasif"}
-                          </Badge>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => toggleKey(key)}
-                          >
-                            {key.is_active ? "Pasifleştir" : "Aktifleştir"}
-                          </Button>
-                          <Button
-                            variant="destructive"
-                            size="sm"
-                            onClick={() => deleteKey(key.id)}
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
+
+                        {/* Row 2: Metrics */}
+                        <div className="grid grid-cols-2 md:grid-cols-5 gap-4 text-sm">
+                          {/* Budget/Spend */}
+                          <div>
+                            <p className="text-muted-foreground text-xs mb-1">
+                              {copy.keys.spend} / {copy.keys.budget}
+                            </p>
+                            <div className="flex items-center space-x-2">
+                              <span className="font-medium">
+                                ${(key.spend || 0).toFixed(2)}
+                              </span>
+                              <span className="text-muted-foreground">/</span>
+                              <span className="text-muted-foreground">
+                                {key.max_budget ? `$${key.max_budget.toFixed(2)}` : copy.keys.unlimited}
+                              </span>
+                            </div>
+                            {key.max_budget && key.max_budget > 0 && (
+                              <div className="w-full bg-muted rounded-full h-1.5 mt-1">
+                                <div
+                                  className={`h-1.5 rounded-full transition-all ${
+                                    (key.budget_usage_pct || 0) >= 90
+                                      ? "bg-red-500"
+                                      : (key.budget_usage_pct || 0) >= 70
+                                      ? "bg-yellow-500"
+                                      : "bg-green-500"
+                                  }`}
+                                  style={{ width: `${Math.min(key.budget_usage_pct || 0, 100)}%` }}
+                                />
+                              </div>
+                            )}
+                          </div>
+
+                          {/* Usage */}
+                          <div>
+                            <p className="text-muted-foreground text-xs mb-1">{copy.keys.usage}</p>
+                            <span className="font-medium">
+                              {key.usage_count}
+                              {key.usage_limit ? ` / ${key.usage_limit}` : ""}
+                            </span>
+                            {!key.usage_limit && (
+                              <span className="text-xs text-muted-foreground ml-1">({copy.keys.noLimit})</span>
+                            )}
+                          </div>
+
+                          {/* Expiry */}
+                          <div>
+                            <p className="text-muted-foreground text-xs mb-1">{copy.keys.expires}</p>
+                            {key.expires_at ? (
+                              <div>
+                                <span className={`font-medium ${
+                                  key.expiry_status === "expired"
+                                    ? "text-red-600"
+                                    : key.expiry_status === "expiring_soon"
+                                    ? "text-yellow-600"
+                                    : ""
+                                }`}>
+                                  {new Date(key.expires_at).toLocaleDateString(dateLocale)}
+                                </span>
+                                {key.days_until_expiry !== null && key.days_until_expiry !== undefined && key.days_until_expiry > 0 && (
+                                  <span className="text-xs text-muted-foreground ml-1">
+                                    ({key.days_until_expiry} {copy.keys.daysLeft})
+                                  </span>
+                                )}
+                              </div>
+                            ) : (
+                              <span className="text-muted-foreground">{copy.keys.neverExpires}</span>
+                            )}
+                          </div>
+
+                          {/* Last Used */}
+                          <div>
+                            <p className="text-muted-foreground text-xs mb-1">{copy.keys.lastUsed}</p>
+                            <span className="font-medium">
+                              {key.last_used_at
+                                ? new Date(key.last_used_at).toLocaleDateString(dateLocale)
+                                : "—"}
+                            </span>
+                          </div>
+
+                          {/* Created */}
+                          <div>
+                            <p className="text-muted-foreground text-xs mb-1">{copy.common.created}</p>
+                            <span className="font-medium">
+                              {new Date(key.created_at).toLocaleDateString(dateLocale)}
+                            </span>
+                          </div>
                         </div>
                       </div>
                     ))}
+                    {keys.length === 0 && (
+                      <div className="text-center py-8 text-muted-foreground">
+                        <Key className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                        <p>No API keys found</p>
+                        <p className="text-sm">Add a new key to get started</p>
+                      </div>
+                    )}
                   </div>
                 </CardContent>
               </Card>
@@ -1457,25 +1997,25 @@ export default function Admin({ theme, toggleTheme }: AdminProps) {
               <div className="flex items-center justify-between">
                 <div>
                   <h2 className="text-3xl font-bold tracking-tight">
-                    Audit Logları
+                    {copy.audit.title}
                   </h2>
                   <p className="text-muted-foreground">
-                    Admin eylemlerini ve sistem olaylarını görüntüle
+                    {copy.audit.description}
                   </p>
                 </div>
-                <Button onClick={loadAuditEvents} disabled={loadingStates.auditEvents}>
-                  <RefreshCw className={`h-4 w-4 mr-2 ${loadingStates.auditEvents ? 'animate-spin' : ''}`} />
-                  Yenile
+                <Button onClick={loadAuditEvents} disabled={loadingStates.audit}>
+                  <RefreshCw className={`h-4 w-4 mr-2 ${loadingStates.audit ? 'animate-spin' : ''}`} />
+                  {copy.common.refresh}
                 </Button>
               </div>
 
               {/* Error Display */}
-              {errors.auditEvents && (
+              {errors.audit && (
                 <Card className="border-red-200 bg-red-50">
                   <CardContent className="pt-6">
                     <div className="flex items-center space-x-2 text-red-600">
                       <AlertTriangle className="h-4 w-4" />
-                      <span className="text-sm font-medium">Hata: {errors.auditEvents}</span>
+                      <span className="text-sm font-medium">{copy.common.error}: {errors.audit}</span>
                     </div>
                   </CardContent>
                 </Card>
@@ -1483,7 +2023,7 @@ export default function Admin({ theme, toggleTheme }: AdminProps) {
 
               <Card>
                 <CardHeader>
-                  <CardTitle>Audit Olayları ({auditEvents.length})</CardTitle>
+                  <CardTitle>{copy.audit.listTitle} ({auditEvents.length})</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-4 max-h-96 overflow-y-auto">
@@ -1499,12 +2039,12 @@ export default function Admin({ theme, toggleTheme }: AdminProps) {
                           <div>
                             <p className="font-medium">{event.action}</p>
                             <p className="text-sm text-muted-foreground">
-                              {event.resource_type} • Admin:{" "}
+                              {event.resource_type} • {copy.audit.admin}:{" "}
                               {event.admin_user_id}
                             </p>
                             <p className="text-xs text-muted-foreground">
                               {new Date(event.created_at).toLocaleString(
-                                "tr-TR"
+                                dateLocale
                               )}
                             </p>
                           </div>

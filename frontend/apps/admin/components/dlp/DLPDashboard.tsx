@@ -24,7 +24,99 @@ import RuleSetManager from "./RuleSetManager";
 import DlpPolicyIntegration from "./DlpPolicyIntegration";
 import axios from "axios";
 
-const API = process.env.NEXT_PUBLIC_API_BASE || "http://localhost:8080/api";
+const API = process.env.NEXT_PUBLIC_API_BASE || "http://localhost:8080";
+type AdminLocale = "en" | "tr";
+
+const dlpCopy = {
+  en: {
+    title: "DLP Management Panel",
+    description: "Manage Data Loss Prevention policies and entities",
+    systemActive: "System Active",
+    tabs: {
+      overview: "Overview",
+      currentRules: "Current Rules",
+      policies: "Policy Management",
+      advancedPolicies: "Advanced Policy",
+      ruleSets: "Rule Sets",
+      entities: "Entity Management",
+      exceptions: "User Exceptions",
+    },
+    stats: {
+      totalPolicy: "Total Policies",
+      active: "active",
+      entityTypes: "Entity Types",
+      custom: "custom",
+      userExceptions: "User Exceptions",
+      last24Hours: "Last 24 Hours",
+      dlpDetections: "DLP detections",
+    },
+    processing: {
+      title: "Message Processing Statistics",
+      description: "DLP activity over the last 30 days",
+      blocked: "Blocked Messages",
+      masked: "Masked Messages",
+      allowed: "Allowed",
+      message: "message",
+    },
+    activity: {
+      title: "Recent Activity",
+      description: "Latest changes in the DLP system",
+      empty: "No activity yet",
+    },
+    quick: {
+      title: "Quick Actions",
+      description: "Common DLP management actions",
+      newPolicy: "New Policy",
+      addEntity: "Add Entity",
+      addException: "Add Exception",
+      report: "Export Report",
+    },
+  },
+  tr: {
+    title: "DLP Yönetim Paneli",
+    description: "Data Loss Prevention policy'lerini ve entity'lerini yönet",
+    systemActive: "Sistem Aktif",
+    tabs: {
+      overview: "Genel Bakış",
+      currentRules: "Mevcut Kurallar",
+      policies: "Policy Yönetimi",
+      advancedPolicies: "Gelişmiş Policy",
+      ruleSets: "Kural Setleri",
+      entities: "Entity Yönetimi",
+      exceptions: "Kullanıcı Exception'ları",
+    },
+    stats: {
+      totalPolicy: "Toplam Policy",
+      active: "aktif",
+      entityTypes: "Entity Türleri",
+      custom: "özel",
+      userExceptions: "Kullanıcı Exception'ları",
+      last24Hours: "Son 24 Saat",
+      dlpDetections: "DLP tespit sayısı",
+    },
+    processing: {
+      title: "Mesaj İşleme İstatistikleri",
+      description: "Son 30 günlük DLP aktivitesi",
+      blocked: "Engellenen Mesajlar",
+      masked: "Maskelenen Mesajlar",
+      allowed: "İzin Verilen",
+      message: "mesaj",
+    },
+    activity: {
+      title: "Son Aktiviteler",
+      description: "DLP sistemindeki son değişiklikler",
+      empty: "Henüz aktivite bulunmuyor",
+    },
+    quick: {
+      title: "Hızlı İşlemler",
+      description: "Sık kullanılan DLP yönetim işlemleri",
+      newPolicy: "Yeni Policy",
+      addEntity: "Entity Ekle",
+      addException: "Exception Ekle",
+      report: "Rapor Al",
+    },
+  },
+} as const;
 
 interface DLPStats {
   total_policies: number;
@@ -54,7 +146,9 @@ axiosWithAuth.interceptors.request.use((config) => {
   return config;
 });
 
-export default function DLPDashboard() {
+export default function DLPDashboard({ locale = "en" }: { locale?: AdminLocale }) {
+  const copy = dlpCopy[locale];
+  const dateLocale = locale === "tr" ? "tr-TR" : "en-US";
   const [activeTab, setActiveTab] = useState<"overview" | "current-rules" | "policies" | "advanced-policies" | "rule-sets" | "entities" | "exceptions">("overview");
   const [stats, setStats] = useState<DLPStats>({
     total_policies: 0,
@@ -180,13 +274,13 @@ export default function DLPDashboard() {
   };
 
   const tabs = [
-    { id: "overview", label: "Genel Bakış", icon: BarChart3 },
-    { id: "current-rules", label: "Mevcut Kurallar", icon: Activity },
-    { id: "policies", label: "Policy Yönetimi", icon: Shield },
-    { id: "advanced-policies", label: "Gelişmiş Policy", icon: Settings },
-    { id: "rule-sets", label: "Kural Setleri", icon: FileText },
-    { id: "entities", label: "Entity Yönetimi", icon: Database },
-    { id: "exceptions", label: "Kullanıcı Exception'ları", icon: Users },
+    { id: "overview", label: copy.tabs.overview, icon: BarChart3 },
+    { id: "current-rules", label: copy.tabs.currentRules, icon: Activity },
+    { id: "policies", label: copy.tabs.policies, icon: Shield },
+    { id: "advanced-policies", label: copy.tabs.advancedPolicies, icon: Settings },
+    { id: "rule-sets", label: copy.tabs.ruleSets, icon: FileText },
+    { id: "entities", label: copy.tabs.entities, icon: Database },
+    { id: "exceptions", label: copy.tabs.exceptions, icon: Users },
   ];
 
   return (
@@ -194,15 +288,15 @@ export default function DLPDashboard() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-3xl font-bold tracking-tight">DLP Yönetim Paneli</h2>
+          <h2 className="text-3xl font-bold tracking-tight">{copy.title}</h2>
           <p className="text-muted-foreground">
-            Data Loss Prevention policy'lerini ve entity'lerini yönet
+            {copy.description}
           </p>
         </div>
         <div className="flex items-center space-x-2">
           <Badge variant="outline" className="text-sm">
             <Activity className="h-3 w-3 mr-1" />
-            Sistem Aktif
+            {copy.systemActive}
           </Badge>
         </div>
       </div>
@@ -237,52 +331,52 @@ export default function DLPDashboard() {
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Toplam Policy</CardTitle>
+                <CardTitle className="text-sm font-medium">{copy.stats.totalPolicy}</CardTitle>
                 <Shield className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">{stats.total_policies}</div>
                 <p className="text-xs text-muted-foreground">
-                  <span className="text-green-500">{stats.active_policies} aktif</span>
+                  <span className="text-green-500">{stats.active_policies} {copy.stats.active}</span>
                 </p>
               </CardContent>
             </Card>
 
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Entity Türleri</CardTitle>
+                <CardTitle className="text-sm font-medium">{copy.stats.entityTypes}</CardTitle>
                 <Database className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">{stats.total_entities}</div>
                 <p className="text-xs text-muted-foreground">
-                  <span className="text-blue-500">{stats.custom_entities} özel</span>
+                  <span className="text-blue-500">{stats.custom_entities} {copy.stats.custom}</span>
                 </p>
               </CardContent>
             </Card>
 
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Kullanıcı Exception'ları</CardTitle>
+                <CardTitle className="text-sm font-medium">{copy.stats.userExceptions}</CardTitle>
                 <Users className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">{stats.total_exceptions}</div>
                 <p className="text-xs text-muted-foreground">
-                  <span className="text-green-500">{stats.active_exceptions} aktif</span>
+                  <span className="text-green-500">{stats.active_exceptions} {copy.stats.active}</span>
                 </p>
               </CardContent>
             </Card>
 
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Son 24 Saat</CardTitle>
+                <CardTitle className="text-sm font-medium">{copy.stats.last24Hours}</CardTitle>
                 <TrendingUp className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">{stats.recent_violations}</div>
                 <p className="text-xs text-muted-foreground">
-                  DLP tespit sayısı
+                  {copy.stats.dlpDetections}
                 </p>
               </CardContent>
             </Card>
@@ -293,41 +387,41 @@ export default function DLPDashboard() {
             {/* Message Processing Stats */}
             <Card>
               <CardHeader>
-                <CardTitle>Mesaj İşleme İstatistikleri</CardTitle>
-                <CardDescription>Son 30 günlük DLP aktivitesi</CardDescription>
+                <CardTitle>{copy.processing.title}</CardTitle>
+                <CardDescription>{copy.processing.description}</CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center space-x-2">
                       <div className="w-3 h-3 bg-red-500 rounded-full"></div>
-                      <span className="text-sm">Engellenen Mesajlar</span>
+                      <span className="text-sm">{copy.processing.blocked}</span>
                     </div>
                     <div className="text-right">
                       <div className="text-2xl font-bold">{stats.blocked_messages}</div>
-                      <div className="text-xs text-muted-foreground">mesaj</div>
+                      <div className="text-xs text-muted-foreground">{copy.processing.message}</div>
                     </div>
                   </div>
                   <div className="flex items-center justify-between">
                     <div className="flex items-center space-x-2">
                       <div className="w-3 h-3 bg-yellow-500 rounded-full"></div>
-                      <span className="text-sm">Maskelenen Mesajlar</span>
+                      <span className="text-sm">{copy.processing.masked}</span>
                     </div>
                     <div className="text-right">
                       <div className="text-2xl font-bold">{stats.masked_messages}</div>
-                      <div className="text-xs text-muted-foreground">mesaj</div>
+                      <div className="text-xs text-muted-foreground">{copy.processing.message}</div>
                     </div>
                   </div>
                   <div className="flex items-center justify-between">
                     <div className="flex items-center space-x-2">
                       <div className="w-3 h-3 bg-green-500 rounded-full"></div>
-                      <span className="text-sm">İzin Verilen</span>
+                      <span className="text-sm">{copy.processing.allowed}</span>
                     </div>
                     <div className="text-right">
                       <div className="text-2xl font-bold">
                         {Math.max(0, 1000 - stats.blocked_messages - stats.masked_messages)}
                       </div>
-                      <div className="text-xs text-muted-foreground">mesaj</div>
+                      <div className="text-xs text-muted-foreground">{copy.processing.message}</div>
                     </div>
                   </div>
                 </div>
@@ -337,8 +431,8 @@ export default function DLPDashboard() {
             {/* Recent Activity */}
             <Card>
               <CardHeader>
-                <CardTitle>Son Aktiviteler</CardTitle>
-                <CardDescription>DLP sistemindeki son değişiklikler</CardDescription>
+                <CardTitle>{copy.activity.title}</CardTitle>
+                <CardDescription>{copy.activity.description}</CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
@@ -352,7 +446,7 @@ export default function DLPDashboard() {
                         <div className="flex items-center space-x-2 text-xs text-muted-foreground">
                           <span>{activity.user}</span>
                           <span>•</span>
-                          <span>{new Date(activity.timestamp).toLocaleString("tr-TR")}</span>
+                          <span>{new Date(activity.timestamp).toLocaleString(dateLocale)}</span>
                         </div>
                       </div>
                     </div>
@@ -360,7 +454,7 @@ export default function DLPDashboard() {
                   {recentActivity.length === 0 && (
                     <div className="text-center py-4 text-muted-foreground">
                       <Clock className="h-8 w-8 mx-auto mb-2 opacity-50" />
-                      <p className="text-sm">Henüz aktivite bulunmuyor</p>
+                      <p className="text-sm">{copy.activity.empty}</p>
                     </div>
                   )}
                 </div>
@@ -371,8 +465,8 @@ export default function DLPDashboard() {
           {/* Quick Actions */}
           <Card>
             <CardHeader>
-              <CardTitle>Hızlı İşlemler</CardTitle>
-              <CardDescription>Sık kullanılan DLP yönetim işlemleri</CardDescription>
+              <CardTitle>{copy.quick.title}</CardTitle>
+              <CardDescription>{copy.quick.description}</CardDescription>
             </CardHeader>
             <CardContent>
               <div className="grid gap-4 md:grid-cols-4">
@@ -382,7 +476,7 @@ export default function DLPDashboard() {
                   onClick={() => setActiveTab("policies")}
                 >
                   <Shield className="h-6 w-6 mb-2" />
-                  <span className="text-sm">Yeni Policy</span>
+                  <span className="text-sm">{copy.quick.newPolicy}</span>
                 </Button>
                 <Button
                   variant="outline"
@@ -390,7 +484,7 @@ export default function DLPDashboard() {
                   onClick={() => setActiveTab("entities")}
                 >
                   <Database className="h-6 w-6 mb-2" />
-                  <span className="text-sm">Entity Ekle</span>
+                  <span className="text-sm">{copy.quick.addEntity}</span>
                 </Button>
                 <Button
                   variant="outline"
@@ -398,7 +492,7 @@ export default function DLPDashboard() {
                   onClick={() => setActiveTab("exceptions")}
                 >
                   <Users className="h-6 w-6 mb-2" />
-                  <span className="text-sm">Exception Ekle</span>
+                  <span className="text-sm">{copy.quick.addException}</span>
                 </Button>
                 <Button
                   variant="outline"
@@ -406,7 +500,7 @@ export default function DLPDashboard() {
                   onClick={handleDataChange}
                 >
                   <FileText className="h-6 w-6 mb-2" />
-                  <span className="text-sm">Rapor Al</span>
+                  <span className="text-sm">{copy.quick.report}</span>
                 </Button>
               </div>
             </CardContent>
@@ -415,7 +509,7 @@ export default function DLPDashboard() {
       )}
 
       {activeTab === "current-rules" && (
-        <DlpPolicyIntegration onPolicyChange={handleDataChange} />
+        <DlpPolicyIntegration onPolicyChange={handleDataChange} locale={locale} />
       )}
 
       {activeTab === "policies" && (
@@ -427,15 +521,15 @@ export default function DLPDashboard() {
       )}
 
       {activeTab === "entities" && (
-        <EntityManager onEntityChange={handleDataChange} />
+        <EntityManager onEntityChange={handleDataChange} locale={locale} />
       )}
 
       {activeTab === "exceptions" && (
-        <UserExceptions onExceptionChange={handleDataChange} />
+        <UserExceptions onExceptionChange={handleDataChange} locale={locale} />
       )}
 
       {activeTab === "rule-sets" && (
-        <RuleSetManager onRuleSetChange={handleDataChange} />
+        <RuleSetManager onRuleSetChange={handleDataChange} locale={locale} />
       )}
     </div>
   );

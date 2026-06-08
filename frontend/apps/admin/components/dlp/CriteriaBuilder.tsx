@@ -18,7 +18,7 @@ import {
 } from "lucide-react";
 import axios from "axios";
 
-const API = process.env.NEXT_PUBLIC_API_BASE || "http://localhost:8080/api";
+const API = process.env.NEXT_PUBLIC_API_BASE || "http://localhost:8080";
 
 interface Entity {
   id: string;
@@ -82,9 +82,10 @@ export default function CriteriaBuilder({ criteria, onChange, className }: Crite
   const addCondition = () => {
     const newCondition: CriteriaCondition = {
       id: `condition_${Date.now()}`,
-      condition_type: "entity",
+      condition_type: "entity_detected",
       entity_types: [],
-      logical_operator: "AND"
+      logical_operator: "AND",
+      negate: false,
     };
     onChange([...criteria, newCondition]);
     setExpandedConditions(prev => new Set(Array.from(prev).concat([newCondition.id])));
@@ -121,8 +122,8 @@ export default function CriteriaBuilder({ criteria, onChange, className }: Crite
 
   const getConditionTypeIcon = (type: string) => {
     switch (type) {
-      case "entity": return <Database className="h-4 w-4" />;
-      case "text_pattern": return <Type className="h-4 w-4" />;
+      case "entity_detected": return <Database className="h-4 w-4" />;
+      case "prompt_contains": return <Type className="h-4 w-4" />;
       case "regex": return <Hash className="h-4 w-4" />;
       case "file_type": return <FileText className="h-4 w-4" />;
       case "file_size": return <Settings className="h-4 w-4" />;
@@ -132,18 +133,18 @@ export default function CriteriaBuilder({ criteria, onChange, className }: Crite
 
   const getConditionTypeLabel = (type: string) => {
     switch (type) {
-      case "entity": return "Entity Tipi";
-      case "text_pattern": return "Metin Deseni";
-      case "regex": return "Regex Deseni";
+      case "entity_detected": return "Entity Type";
+      case "prompt_contains": return "Text Pattern";
+      case "regex": return "Regex Pattern";
       case "file_type": return "Dosya Tipi";
-      case "file_size": return "Dosya Boyutu";
+      case "file_size": return "File Size";
       default: return "Bilinmeyen";
     }
   };
 
   const renderConditionContent = (condition: CriteriaCondition) => {
     switch (condition.condition_type) {
-      case "entity":
+      case "entity_detected":
         return (
           <div className="space-y-4">
             <div>
@@ -172,27 +173,27 @@ export default function CriteriaBuilder({ criteria, onChange, className }: Crite
               </div>
               {entities.length === 0 && (
                 <p className="text-sm text-muted-foreground mt-2">
-                  Henüz entity tanımlanmamış. Entity sekmesinden yeni entity'ler oluşturun.
+                  No entities have been defined yet. Create new entities from the Entity tab.
                 </p>
               )}
             </div>
           </div>
         );
 
-      case "text_pattern":
+      case "prompt_contains":
         return (
           <div>
-            <label className="text-sm font-medium">Metin Desenleri</label>
+            <label className="text-sm font-medium">Text Patterns</label>
             <Input
               value={condition.text_patterns?.join(", ") || ""}
               onChange={(e) => updateCondition(condition.id, {
                 text_patterns: e.target.value.split(",").map(s => s.trim()).filter(Boolean)
               })}
-              placeholder="kredi kartı, kart numarası, card number"
+              placeholder="credit card, card number"
               className="mt-2"
             />
             <p className="text-xs text-muted-foreground mt-1">
-              Virgülle ayırarak birden fazla desen girebilirsiniz
+              You can enter multiple patterns separated by commas
             </p>
           </div>
         );
@@ -200,7 +201,7 @@ export default function CriteriaBuilder({ criteria, onChange, className }: Crite
       case "regex":
         return (
           <div>
-            <label className="text-sm font-medium">Regex Deseni</label>
+            <label className="text-sm font-medium">Regex Pattern</label>
             <Input
               value={condition.regex_pattern || ""}
               onChange={(e) => updateCondition(condition.id, { regex_pattern: e.target.value })}
@@ -208,7 +209,7 @@ export default function CriteriaBuilder({ criteria, onChange, className }: Crite
               className="mt-2"
             />
             <p className="text-xs text-muted-foreground mt-1">
-              JavaScript regex formatında desen girin
+              Enter a pattern in JavaScript regex format
             </p>
           </div>
         );
@@ -226,7 +227,7 @@ export default function CriteriaBuilder({ criteria, onChange, className }: Crite
               className="mt-2"
             />
             <p className="text-xs text-muted-foreground mt-1">
-              Dosya uzantılarını virgülle ayırarak girin
+              Enter file extensions separated by commas
             </p>
           </div>
         );
@@ -264,7 +265,7 @@ export default function CriteriaBuilder({ criteria, onChange, className }: Crite
         );
 
       default:
-        return <p className="text-sm text-muted-foreground">Bilinmeyen koşul tipi</p>;
+        return <p className="text-sm text-muted-foreground">Unknown condition type</p>;
     }
   };
 
@@ -274,10 +275,10 @@ export default function CriteriaBuilder({ criteria, onChange, className }: Crite
         <CardHeader>
           <CardTitle className="flex items-center space-x-2">
             <Settings className="h-5 w-5" />
-            <span>Kural Kriterleri</span>
+            <span>Rule Criteria</span>
           </CardTitle>
           <CardDescription>
-            Kuralın hangi durumlarda tetikleneceğini belirleyin
+            Define when the rule should be triggered
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -285,9 +286,9 @@ export default function CriteriaBuilder({ criteria, onChange, className }: Crite
             {criteria.length === 0 ? (
               <div className="text-center py-8">
                 <AlertTriangle className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                <p className="text-muted-foreground">Henüz kriter tanımlanmamış</p>
+                <p className="text-muted-foreground">No criteria defined yet</p>
                 <p className="text-sm text-muted-foreground">
-                  Kuralın çalışması için en az bir kriter eklemelisiniz
+                  Add at least one criterion for the rule to run
                 </p>
               </div>
             ) : (
@@ -299,7 +300,7 @@ export default function CriteriaBuilder({ criteria, onChange, className }: Crite
                         {getConditionTypeIcon(condition.condition_type)}
                         <div>
                           <h4 className="font-medium">
-                            Koşul {index + 1}: {getConditionTypeLabel(condition.condition_type)}
+                            Condition {index + 1}: {getConditionTypeLabel(condition.condition_type)}
                           </h4>
                           {index > 0 && (
                             <Badge variant="outline" className="mt-1">
@@ -336,7 +337,7 @@ export default function CriteriaBuilder({ criteria, onChange, className }: Crite
                     <CardContent className="pt-0">
                       <div className="space-y-4">
                         <div>
-                          <label className="text-sm font-medium">Koşul Tipi</label>
+                          <label className="text-sm font-medium">Condition Tipi</label>
                           <select
                             value={condition.condition_type}
                             onChange={(e) => updateCondition(condition.id, {
@@ -351,11 +352,11 @@ export default function CriteriaBuilder({ criteria, onChange, className }: Crite
                             })}
                             className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm mt-2"
                           >
-                            <option value="entity">Entity Tipi</option>
-                            <option value="text_pattern">Metin Deseni</option>
-                            <option value="regex">Regex Deseni</option>
+                            <option value="entity_detected">Entity Type</option>
+                            <option value="prompt_contains">Text Pattern</option>
+                            <option value="regex">Regex Pattern</option>
                             <option value="file_type">Dosya Tipi</option>
-                            <option value="file_size">Dosya Boyutu</option>
+                            <option value="file_size">File Size</option>
                           </select>
                         </div>
 
@@ -363,7 +364,7 @@ export default function CriteriaBuilder({ criteria, onChange, className }: Crite
 
                         {index > 0 && (
                           <div>
-                            <label className="text-sm font-medium">Mantıksal Operatör</label>
+                            <label className="text-sm font-medium">Logical Operator</label>
                             <select
                               value={condition.logical_operator}
                               onChange={(e) => updateCondition(condition.id, {
@@ -375,7 +376,7 @@ export default function CriteriaBuilder({ criteria, onChange, className }: Crite
                               <option value="OR">VEYA (OR)</option>
                             </select>
                             <p className="text-xs text-muted-foreground mt-1">
-                              Bu koşulun önceki koşullarla nasıl birleştirileceğini belirler
+                              Defines how this condition combines with previous conditions
                             </p>
                           </div>
                         )}
@@ -388,7 +389,7 @@ export default function CriteriaBuilder({ criteria, onChange, className }: Crite
 
             <Button onClick={addCondition} variant="outline" className="w-full">
               <Plus className="h-4 w-4 mr-2" />
-              Yeni Kriter Ekle
+              Add New Criterion
             </Button>
           </div>
         </CardContent>

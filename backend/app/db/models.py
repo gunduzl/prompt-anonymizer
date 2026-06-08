@@ -86,7 +86,15 @@ class LiteLLMKey(Base, TimestampMixin):
     __tablename__ = "litellm_keys"
     id: Mapped[str] = mapped_column(UUID(as_uuid=False), primary_key=True, default=lambda: str(uuid4()))
     key_value: Mapped[str] = mapped_column(Text, nullable=False)
+    key_name: Mapped[str | None] = mapped_column(String, nullable=True)
+    key_alias: Mapped[str | None] = mapped_column(String, nullable=True)
     is_active: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
+    expires_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+    max_budget: Mapped[float | None] = mapped_column(nullable=True)
+    spend: Mapped[float] = mapped_column(nullable=False, default=0.0)
+    usage_count: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    usage_limit: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    last_used_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
 
 # New: DLP Policies table (admin-managed)
 class DlpPolicyRule(Base, TimestampMixin):

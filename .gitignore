@@ -69,3 +69,7 @@ logs/
 *.pack
 *.zip
 *.tar.gz
+
+# Local generated report artifacts
+patterns.json
+docs/reports/*.json

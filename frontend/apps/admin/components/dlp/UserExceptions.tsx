@@ -22,7 +22,7 @@ import {
 } from "lucide-react";
 import axios from "axios";
 
-const API = process.env.NEXT_PUBLIC_API_BASE || "http://localhost:8080/api";
+const API = process.env.NEXT_PUBLIC_API_BASE || "http://localhost:8080";
 
 interface UserException {
   id: string;
@@ -42,6 +42,7 @@ interface UserException {
 
 interface UserExceptionsProps {
   onExceptionChange?: () => void;
+  locale?: "en" | "tr";
 }
 
 const axiosWithAuth = axios.create();
@@ -51,7 +52,39 @@ axiosWithAuth.interceptors.request.use((config) => {
   return config;
 });
 
-export default function UserExceptions({ onExceptionChange }: UserExceptionsProps) {
+export default function UserExceptions({ onExceptionChange, locale = "en" }: UserExceptionsProps) {
+  const t = {
+    title: locale === "en" ? "User Exceptions" : "Kullanıcı Exception'ları",
+    desc: locale === "en" ? "Manage user-based DLP exceptions" : "Kullanıcı bazlı DLP exception'larını yönet",
+    refresh: locale === "en" ? "Refresh" : "Yenile",
+    newException: locale === "en" ? "New Exception" : "Yeni Exception",
+    filters: locale === "en" ? "Filters" : "Filtreler",
+    search: locale === "en" ? "Search user..." : "Kullanıcı ara...",
+    allTypes: locale === "en" ? "All Types" : "Tüm Türler",
+    allStatuses: locale === "en" ? "All Statuses" : "Tüm Durumlar",
+    active: locale === "en" ? "Active" : "Aktif",
+    inactive: locale === "en" ? "Inactive" : "Pasif",
+    expired: locale === "en" ? "Expired" : "Süresi Dolmuş",
+    total: locale === "en" ? "Total" : "Toplam",
+    addTitle: locale === "en" ? "Add New Exception" : "Yeni Exception Ekle",
+    addDesc: locale === "en" ? "Create a DLP exception definition for a user" : "Kullanıcı için DLP exception tanımı oluşturun",
+    userId: locale === "en" ? "User ID" : "Kullanıcı ID",
+    userEmail: locale === "en" ? "User Email (optional)" : "Kullanıcı Email (opsiyonel)",
+    expireDate: locale === "en" ? "Expiration Date (YYYY-MM-DD)" : "Son Kullanma Tarihi (YYYY-MM-DD)",
+    reason: locale === "en" ? "Exception Reason" : "Exception Sebebi",
+    entityTypes: locale === "en" ? "Entity Types" : "Entity Türleri",
+    cancel: locale === "en" ? "Cancel" : "İptal",
+    add: locale === "en" ? "Add Exception" : "Exception Ekle",
+    list: locale === "en" ? "Exception List" : "Exception Listesi",
+    because: locale === "en" ? "Reason" : "Sebep",
+    created: locale === "en" ? "Created" : "Oluşturulma",
+    creator: locale === "en" ? "Created by" : "Oluşturan",
+    expires: locale === "en" ? "Expires" : "Son Kullanma",
+    disable: locale === "en" ? "Disable" : "Pasifleştir",
+    enable: locale === "en" ? "Enable" : "Aktifleştir",
+    empty1: locale === "en" ? "No exception found" : "Hiç exception bulunamadı",
+    empty2: locale === "en" ? "Check your filters or add a new exception" : "Filtrelerinizi kontrol edin veya yeni exception ekleyin",
+  };
   const [exceptions, setExceptions] = useState<UserException[]>([]);
   const [loading, setLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
@@ -180,12 +213,12 @@ export default function UserExceptions({ onExceptionChange }: UserExceptionsProp
 
   const getStatusBadge = (exception: UserException) => {
     if (!exception.is_active) {
-      return <Badge variant="secondary">PASİF</Badge>;
+      return <Badge variant="secondary">{(locale === "en" ? "INACTIVE" : "PASİF")}</Badge>;
     }
     if (isExpired(exception.expires_at)) {
-      return <Badge variant="destructive">SÜRESİ DOLMUŞ</Badge>;
+      return <Badge variant="destructive">{(locale === "en" ? "EXPIRED" : "SÜRESİ DOLMUŞ")}</Badge>;
     }
-    return <Badge variant="default">AKTİF</Badge>;
+    return <Badge variant="default">{(locale === "en" ? "ACTIVE" : "AKTİF")}</Badge>;
   };
 
   useEffect(() => {
@@ -207,19 +240,19 @@ export default function UserExceptions({ onExceptionChange }: UserExceptionsProp
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h3 className="text-2xl font-bold tracking-tight">Kullanıcı Exception'ları</h3>
+          <h3 className="text-2xl font-bold tracking-tight">{t.title}</h3>
           <p className="text-muted-foreground">
-            Kullanıcı bazlı DLP exception'larını yönet
+            {t.desc}
           </p>
         </div>
         <div className="flex items-center space-x-2">
           <Button onClick={loadExceptions} disabled={loading}>
             <RefreshCw className={`h-4 w-4 mr-2 ${loading ? "animate-spin" : ""}`} />
-            Yenile
+            {t.refresh}
           </Button>
           <Button onClick={() => setShowAddForm(true)}>
             <Plus className="h-4 w-4 mr-2" />
-            Yeni Exception
+            {t.newException}
           </Button>
         </div>
       </div>
@@ -227,14 +260,14 @@ export default function UserExceptions({ onExceptionChange }: UserExceptionsProp
       {/* Filters */}
       <Card>
         <CardHeader>
-          <CardTitle>Filtreler</CardTitle>
+          <CardTitle>{t.filters}</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="grid gap-4 md:grid-cols-4">
             <div className="relative">
               <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
               <Input
-                placeholder="Kullanıcı ara..."
+                placeholder={t.search}
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="pl-10"
@@ -245,7 +278,7 @@ export default function UserExceptions({ onExceptionChange }: UserExceptionsProp
               value={filterType}
               onChange={(e) => setFilterType(e.target.value as any)}
             >
-              <option value="all">Tüm Türler</option>
+              <option value="all">{t.allTypes}</option>
               <option value="allow">Allow</option>
               <option value="bypass">Bypass</option>
               <option value="custom">Custom</option>
@@ -255,17 +288,17 @@ export default function UserExceptions({ onExceptionChange }: UserExceptionsProp
               value={filterActive}
               onChange={(e) => setFilterActive(e.target.value as any)}
             >
-              <option value="all">Tüm Durumlar</option>
-              <option value="active">Aktif</option>
-              <option value="inactive">Pasif</option>
-              <option value="expired">Süresi Dolmuş</option>
+              <option value="all">{t.allStatuses}</option>
+              <option value="active">{t.active}</option>
+              <option value="inactive">{t.inactive}</option>
+              <option value="expired">{t.expired}</option>
             </select>
             <div className="flex items-center space-x-2">
               <Badge variant="outline">
-                Toplam: {filteredExceptions.length}
+                {t.total}: {filteredExceptions.length}
               </Badge>
               <Badge variant="secondary">
-                Aktif: {filteredExceptions.filter(e => e.is_active && !isExpired(e.expires_at)).length}
+                {t.active}: {filteredExceptions.filter(e => e.is_active && !isExpired(e.expires_at)).length}
               </Badge>
             </div>
           </div>
@@ -276,21 +309,21 @@ export default function UserExceptions({ onExceptionChange }: UserExceptionsProp
       {showAddForm && (
         <Card>
           <CardHeader>
-            <CardTitle>Yeni Exception Ekle</CardTitle>
+            <CardTitle>{t.addTitle}</CardTitle>
             <CardDescription>
-              Kullanıcı için DLP exception tanımı oluşturun
+              {t.addDesc}
             </CardDescription>
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
               <div className="grid gap-4 md:grid-cols-2">
                 <Input
-                  placeholder="Kullanıcı ID"
+                  placeholder={t.userId}
                   value={newException.user_id}
                   onChange={(e) => setNewException({ ...newException, user_id: e.target.value })}
                 />
                 <Input
-                  placeholder="Kullanıcı Email (opsiyonel)"
+                  placeholder={t.userEmail}
                   value={newException.user_email}
                   onChange={(e) => setNewException({ ...newException, user_email: e.target.value })}
                 />
@@ -299,12 +332,12 @@ export default function UserExceptions({ onExceptionChange }: UserExceptionsProp
                   value={newException.exception_type}
                   onChange={(e) => setNewException({ ...newException, exception_type: e.target.value as any })}
                 >
-                  <option value="allow">Allow (İzin Ver)</option>
-                  <option value="bypass">Bypass (Atla)</option>
-                  <option value="custom">Custom (Özel)</option>
+                  <option value="allow">Allow</option>
+                  <option value="bypass">Bypass</option>
+                  <option value="custom">Custom</option>
                 </select>
                 <Input
-                  placeholder="Son Kullanma Tarihi (YYYY-MM-DD)"
+                  placeholder={t.expireDate}
                   type="date"
                   value={newException.expires_at}
                   onChange={(e) => setNewException({ ...newException, expires_at: e.target.value })}
@@ -312,13 +345,13 @@ export default function UserExceptions({ onExceptionChange }: UserExceptionsProp
               </div>
               
               <Input
-                placeholder="Exception Sebebi"
+                placeholder={t.reason}
                 value={newException.reason}
                 onChange={(e) => setNewException({ ...newException, reason: e.target.value })}
               />
 
               <div>
-                <label className="text-sm font-medium mb-2 block">Entity Türleri</label>
+                <label className="text-sm font-medium mb-2 block">{t.entityTypes}</label>
                 <div className="grid gap-2 md:grid-cols-4">
                   {availableEntityTypes.map((entityType) => (
                     <div key={entityType} className="flex items-center space-x-2">
@@ -343,17 +376,17 @@ export default function UserExceptions({ onExceptionChange }: UserExceptionsProp
                   checked={newException.is_active}
                   onChange={(e) => setNewException({ ...newException, is_active: e.target.checked })}
                 />
-                <label htmlFor="is_active_exception" className="text-sm">Aktif</label>
+                <label htmlFor="is_active_exception" className="text-sm">{t.active}</label>
               </div>
             </div>
             
             <div className="flex justify-end space-x-2 mt-4">
               <Button variant="outline" onClick={() => setShowAddForm(false)}>
-                İptal
+                {t.cancel}
               </Button>
               <Button onClick={createException} disabled={loading}>
                 <Plus className="h-4 w-4 mr-2" />
-                Exception Ekle
+                {t.add}
               </Button>
             </div>
           </CardContent>
@@ -363,7 +396,7 @@ export default function UserExceptions({ onExceptionChange }: UserExceptionsProp
       {/* Exceptions List */}
       <Card>
         <CardHeader>
-          <CardTitle>Exception Listesi ({filteredExceptions.length})</CardTitle>
+          <CardTitle>{t.list} ({filteredExceptions.length})</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
@@ -401,11 +434,11 @@ export default function UserExceptions({ onExceptionChange }: UserExceptionsProp
                     </div>
 
                     <p className="text-sm text-muted-foreground mb-2">
-                      <strong>Sebep:</strong> {exception.reason}
+                      <strong>{t.because}:</strong> {exception.reason}
                     </p>
 
                     <div className="flex items-center space-x-2 mb-2">
-                      <span className="text-xs text-muted-foreground">Entity Türleri:</span>
+                      <span className="text-xs text-muted-foreground">{t.entityTypes}:</span>
                       {exception.entity_types.map((entityType) => (
                         <Badge key={entityType} variant="outline" className="text-xs">
                           {entityType}
@@ -416,17 +449,17 @@ export default function UserExceptions({ onExceptionChange }: UserExceptionsProp
                     <div className="flex items-center space-x-4 text-xs text-muted-foreground">
                       <div className="flex items-center space-x-1">
                         <Calendar className="h-3 w-3" />
-                        <span>Oluşturulma: {new Date(exception.created_at).toLocaleDateString("tr-TR")}</span>
+                        <span>{t.created}: {new Date(exception.created_at).toLocaleDateString(locale === "en" ? "en-US" : "tr-TR")}</span>
                       </div>
                       {exception.expires_at && (
                         <div className="flex items-center space-x-1">
                           <Clock className="h-3 w-3" />
                           <span className={isExpired(exception.expires_at) ? "text-red-500" : ""}>
-                            Son Kullanma: {new Date(exception.expires_at).toLocaleDateString("tr-TR")}
+                            {t.expires}: {new Date(exception.expires_at).toLocaleDateString(locale === "en" ? "en-US" : "tr-TR")}
                           </span>
                         </div>
                       )}
-                      <span>Oluşturan: {exception.created_by}</span>
+                      <span>{t.creator}: {exception.created_by}</span>
                     </div>
                   </div>
                 </div>
@@ -442,7 +475,7 @@ export default function UserExceptions({ onExceptionChange }: UserExceptionsProp
                     size="sm"
                     onClick={() => updateException(exception.id, { is_active: !exception.is_active })}
                   >
-                    {exception.is_active ? "Pasifleştir" : "Aktifleştir"}
+                    {exception.is_active ? t.disable : t.enable}
                   </Button>
                   <Button
                     variant="outline"
@@ -464,8 +497,8 @@ export default function UserExceptions({ onExceptionChange }: UserExceptionsProp
             {filteredExceptions.length === 0 && (
               <div className="text-center py-8 text-muted-foreground">
                 <Users className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                <p>Hiç exception bulunamadı</p>
-                <p className="text-sm">Filtrelerinizi kontrol edin veya yeni exception ekleyin</p>
+                <p>{t.empty1}</p>
+                <p className="text-sm">{t.empty2}</p>
               </div>
             )}
           </div>

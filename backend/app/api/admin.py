@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, Request
 from sqlalchemy.orm import Session
 from pydantic import BaseModel, EmailStr
 from typing import List, Optional, Dict, Any
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from app.db.session import get_db
 from app.db import models
 from app.auth.security import hash_password
@@ -382,24 +382,111 @@ async def list_user_session_messages(user_id: str, session_id: str, db: Session 
 # LiteLLM Key Management
 class LiteLLMKeyCreate(BaseModel):
     key_value: str
+    key_name: Optional[str] = None
+    key_alias: Optional[str] = None
     is_active: bool = True
+    expires_at: Optional[str] = None  # ISO format datetime string
+    max_budget: Optional[float] = None
+    usage_limit: Optional[int] = None
 
 class LiteLLMKeyUpdate(BaseModel):
     key_value: Optional[str] = None
+    key_name: Optional[str] = None
+    key_alias: Optional[str] = None
     is_active: Optional[bool] = None
+    expires_at: Optional[str] = None
+    max_budget: Optional[float] = None
+    usage_limit: Optional[int] = None
 
 @router.get("/keys")
 async def list_keys(db: Session = Depends(get_db), user: models.User = Depends(require_admin_role())):
-    keys = db.query(models.LiteLLMKey).order_by(models.LiteLLMKey.created_at.desc()).all()
-    return [{"id": k.id, "key_value": k.key_value, "is_active": k.is_active, "created_at": getattr(k, "created_at", None), "updated_at": getattr(k, "updated_at", None)} for k in keys]
+    try:
+        keys = db.query(models.LiteLLMKey).order_by(models.LiteLLMKey.created_at.desc()).all()
+    except Exception:
+        # Keep admin UI alive even if key table schema/data is temporarily inconsistent.
+        return []
+    now_utc = datetime.now(timezone.utc)
+    result = []
+    for k in keys:
+        try:
+            # Calculate expiry status
+            expiry_status = "active"
+            days_until_expiry = None
+            if k.expires_at:
+                expiry_dt = k.expires_at
+                if expiry_dt.tzinfo is None:
+                    expiry_dt = expiry_dt.replace(tzinfo=timezone.utc)
+                delta = expiry_dt - now_utc
+                days_until_expiry = delta.days
+                if delta.total_seconds() <= 0:
+                    expiry_status = "expired"
+                elif delta.days <= 30:
+                    expiry_status = "expiring_soon"
+
+            # Calculate budget usage percentage
+            budget_usage_pct = None
+            if k.max_budget and k.max_budget > 0:
+                spend_value = getattr(k, "spend", 0) or 0
+                budget_usage_pct = round((spend_value / k.max_budget) * 100, 2)
+
+            key_value = k.key_value or ""
+            key_prefix = key_value[:8] + "..." if len(key_value) > 8 else key_value
+
+            result.append({
+                "id": k.id,
+                "key_value": key_value,
+                "key_prefix": key_prefix,
+                "key_name": getattr(k, "key_name", None),
+                "key_alias": getattr(k, "key_alias", None),
+                "is_active": bool(getattr(k, "is_active", True)),
+                "expires_at": k.expires_at.isoformat() if k.expires_at else None,
+                "days_until_expiry": days_until_expiry,
+                "expiry_status": expiry_status,
+                "max_budget": getattr(k, "max_budget", None),
+                "spend": getattr(k, "spend", 0) or 0,
+                "budget_usage_pct": budget_usage_pct,
+                "usage_count": getattr(k, "usage_count", 0) or 0,
+                "usage_limit": getattr(k, "usage_limit", None),
+                "last_used_at": k.last_used_at.isoformat() if getattr(k, "last_used_at", None) else None,
+                "created_at": k.created_at.isoformat() if getattr(k, "created_at", None) else None,
+                "updated_at": k.updated_at.isoformat() if getattr(k, "updated_at", None) else None,
+            })
+        except Exception:
+            continue
+    return result
 
 @router.post("/keys")
 async def create_key(payload: LiteLLMKeyCreate, db: Session = Depends(get_db), user: models.User = Depends(require_admin_role())):
-    k = models.LiteLLMKey(key_value=payload.key_value, is_active=payload.is_active)
+    expires_at_dt = None
+    if payload.expires_at:
+        try:
+            expires_at_dt = datetime.fromisoformat(payload.expires_at.replace("Z", "+00:00"))
+        except ValueError:
+            from fastapi import HTTPException as HE
+            raise HE(400, "Invalid expires_at format. Use ISO format.")
+    
+    k = models.LiteLLMKey(
+        key_value=payload.key_value,
+        key_name=payload.key_name,
+        key_alias=payload.key_alias,
+        is_active=payload.is_active,
+        expires_at=expires_at_dt,
+        max_budget=payload.max_budget,
+        usage_limit=payload.usage_limit,
+    )
     db.add(k)
     db.commit()
     db.refresh(k)
-    return {"id": k.id, "key_value": k.key_value, "is_active": k.is_active}
+    return {
+        "id": k.id,
+        "key_value": k.key_value,
+        "key_name": k.key_name,
+        "key_alias": k.key_alias,
+        "is_active": k.is_active,
+        "expires_at": k.expires_at.isoformat() if k.expires_at else None,
+        "max_budget": k.max_budget,
+        "usage_limit": k.usage_limit,
+    }
 
 @router.patch("/keys/{key_id}")
 async def update_key(key_id: str, payload: LiteLLMKeyUpdate, db: Session = Depends(get_db), user: models.User = Depends(require_admin_role())):
@@ -408,8 +495,21 @@ async def update_key(key_id: str, payload: LiteLLMKeyUpdate, db: Session = Depen
         raise HTTPException(404, "Key bulunamadı")
     if payload.key_value is not None:
         k.key_value = payload.key_value
+    if payload.key_name is not None:
+        k.key_name = payload.key_name
+    if payload.key_alias is not None:
+        k.key_alias = payload.key_alias
     if payload.is_active is not None:
         k.is_active = payload.is_active
+    if payload.expires_at is not None:
+        try:
+            k.expires_at = datetime.fromisoformat(payload.expires_at.replace("Z", "+00:00"))
+        except ValueError:
+            raise HTTPException(400, "Invalid expires_at format")
+    if payload.max_budget is not None:
+        k.max_budget = payload.max_budget
+    if payload.usage_limit is not None:
+        k.usage_limit = payload.usage_limit
     db.commit()
     return {"ok": True}
 

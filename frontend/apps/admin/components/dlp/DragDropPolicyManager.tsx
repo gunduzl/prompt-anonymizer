@@ -34,7 +34,7 @@ axiosWithAuth.interceptors.request.use((config) => {
   return config;
 });
 
-const API = process.env.NEXT_PUBLIC_API_BASE || "http://localhost:8080/api";
+const API = process.env.NEXT_PUBLIC_API_BASE || "http://localhost:8080";
 
 interface PolicyRuleAdvanced {
   id: string;
@@ -94,7 +94,7 @@ export default function DragDropPolicyManager({ onPolicyChange }: DragDropPolicy
       const response = await axiosWithAuth.get(`${API}/dlp/policies/advanced`);
       setPolicies(response.data.policies || []);
     } catch (error) {
-      console.error("Policy'ler yüklenemedi:", error);
+      console.error("Policies could not be loaded:", error);
       setPolicies([]); // Ensure policies is always an array
     } finally {
       setLoading(false);
@@ -123,7 +123,7 @@ export default function DragDropPolicyManager({ onPolicyChange }: DragDropPolicy
       setShowAddForm(false);
       onPolicyChange?.();
     } catch (error) {
-      console.error("Policy oluşturulamadı:", error);
+      console.error("Policy could not be created:", error);
     } finally {
       setLoading(false);
     }
@@ -136,14 +136,14 @@ export default function DragDropPolicyManager({ onPolicyChange }: DragDropPolicy
       await loadPolicies();
       onPolicyChange?.();
     } catch (error) {
-      console.error("Policy güncellenemedi:", error);
+      console.error("Policy could not be updated:", error);
     } finally {
       setLoading(false);
     }
   };
 
   const deletePolicy = async (policyId: string) => {
-    if (!confirm("Bu policy'yi silmek istediğinizden emin misiniz?")) return;
+    if (!confirm("Are you sure you want to delete this policy?")) return;
 
     setLoading(true);
     try {
@@ -169,7 +169,7 @@ export default function DragDropPolicyManager({ onPolicyChange }: DragDropPolicy
       await loadPolicies();
       onPolicyChange?.();
     } catch (error) {
-      console.error("Policy sıralaması güncellenemedi:", error);
+      console.error("Policy order could not be updated:", error);
     } finally {
       setLoading(false);
     }
@@ -237,7 +237,7 @@ export default function DragDropPolicyManager({ onPolicyChange }: DragDropPolicy
       setSelectedPolicies([]);
       onPolicyChange?.();
     } catch (error) {
-      console.error("Toplu işlem başarısız:", error);
+      console.error("Bulk operation failed:", error);
     } finally {
       setLoading(false);
     }
@@ -246,7 +246,7 @@ export default function DragDropPolicyManager({ onPolicyChange }: DragDropPolicy
   const duplicatePolicy = async (policy: PolicyRuleAdvanced) => {
     const duplicated = {
       ...policy,
-      name: `${policy.name} (Kopya)`,
+      name: `${policy.name} (Copy)`,
       id: undefined,
       priority: policy.priority + 1,
     };
@@ -258,7 +258,7 @@ export default function DragDropPolicyManager({ onPolicyChange }: DragDropPolicy
       await loadPolicies();
       onPolicyChange?.();
     } catch (error) {
-      console.error("Policy kopyalanamadı:", error);
+      console.error("Policy could not be duplicated:", error);
     } finally {
       setLoading(false);
     }
@@ -286,7 +286,7 @@ export default function DragDropPolicyManager({ onPolicyChange }: DragDropPolicy
   });
 
   const groupedPolicies = filteredPolicies.reduce((groups, policy) => {
-    const group = policy.rule_group || "Genel";
+    const group = policy.rule_group || "General";
     if (!groups[group]) groups[group] = [];
     groups[group].push(policy);
     return groups;
@@ -312,19 +312,19 @@ export default function DragDropPolicyManager({ onPolicyChange }: DragDropPolicy
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h3 className="text-2xl font-bold tracking-tight">Gelişmiş Policy Yönetimi</h3>
+          <h3 className="text-2xl font-bold tracking-tight">Advanced Policy Management</h3>
           <p className="text-muted-foreground">
-            Drag & drop ile policy sıralaması ve hiyerarşik yönetim
+            Hierarchical policy management with drag and drop ordering
           </p>
         </div>
         <div className="flex items-center space-x-2">
           <Button variant="outline" onClick={loadPolicies} disabled={loading}>
             <RefreshCw className={`h-4 w-4 mr-2 ${loading ? "animate-spin" : ""}`} />
-            Yenile
+            Refresh
           </Button>
           <Button onClick={() => setShowAddForm(true)}>
             <Plus className="h-4 w-4 mr-2" />
-            Yeni Policy
+            New Policy
           </Button>
         </div>
       </div>
@@ -332,14 +332,14 @@ export default function DragDropPolicyManager({ onPolicyChange }: DragDropPolicy
       {/* Filters and Search */}
       <Card>
         <CardHeader>
-          <CardTitle>Filtreler ve Arama</CardTitle>
+          <CardTitle>Filters and Search</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="grid gap-4 md:grid-cols-4">
             <div className="relative">
               <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
               <Input
-                placeholder="Policy ara..."
+                placeholder="Search policy..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="pl-10"
@@ -350,22 +350,22 @@ export default function DragDropPolicyManager({ onPolicyChange }: DragDropPolicy
               value={filterAction}
               onChange={(e) => setFilterAction(e.target.value)}
             >
-              <option value="all">Tüm Aksiyonlar</option>
-              <option value="allow">İzin Ver</option>
-              <option value="mask">Maskele</option>
-              <option value="block">Engelle</option>
+              <option value="all">All Actions</option>
+              <option value="allow">Allow</option>
+              <option value="mask">Mask</option>
+              <option value="block">Block</option>
             </select>
             <select
               className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
               value={filterStatus}
               onChange={(e) => setFilterStatus(e.target.value)}
             >
-              <option value="all">Tüm Durumlar</option>
-              <option value="active">Aktif</option>
-              <option value="inactive">Pasif</option>
+              <option value="all">All Statuses</option>
+              <option value="active">Active</option>
+              <option value="inactive">Inactive</option>
             </select>
             <Button variant="outline" onClick={selectAllPolicies}>
-              {selectedPolicies.length === filteredPolicies.length ? "Tümünü Kaldır" : "Tümünü Seç"}
+              {selectedPolicies.length === filteredPolicies.length ? "Clear All" : "Select All"}
             </Button>
           </div>
         </CardContent>
@@ -375,7 +375,7 @@ export default function DragDropPolicyManager({ onPolicyChange }: DragDropPolicy
       {selectedPolicies.length > 0 && (
         <Card>
           <CardHeader>
-            <CardTitle>Toplu İşlemler ({selectedPolicies.length} seçili)</CardTitle>
+            <CardTitle>Bulk Actions ({selectedPolicies.length} selected)</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="flex items-center space-x-2">
@@ -384,21 +384,21 @@ export default function DragDropPolicyManager({ onPolicyChange }: DragDropPolicy
                 onClick={() => bulkUpdatePolicies("activate")}
               >
                 <CheckCircle className="h-4 w-4 mr-2" />
-                Aktifleştir
+                Enable
               </Button>
               <Button
                 variant="outline"
                 onClick={() => bulkUpdatePolicies("deactivate")}
               >
                 <AlertTriangle className="h-4 w-4 mr-2" />
-                Pasifleştir
+                Disable
               </Button>
               <Button
                 variant="destructive"
                 onClick={() => bulkUpdatePolicies("delete")}
               >
                 <Trash2 className="h-4 w-4 mr-2" />
-                Sil
+                Delete
               </Button>
             </div>
           </CardContent>
@@ -409,20 +409,20 @@ export default function DragDropPolicyManager({ onPolicyChange }: DragDropPolicy
       {showAddForm && (
         <Card>
           <CardHeader>
-            <CardTitle>Yeni Policy Ekle</CardTitle>
+            <CardTitle>New Add Policy</CardTitle>
             <CardDescription>
-              Gelişmiş DLP policy tanımı oluşturun
+              Create an advanced DLP policy definition
             </CardDescription>
           </CardHeader>
           <CardContent>
             <div className="grid gap-4 md:grid-cols-2">
               <Input
-                placeholder="Policy Adı"
+                placeholder="Policy Name"
                 value={newPolicy.name}
                 onChange={(e) => setNewPolicy({ ...newPolicy, name: e.target.value })}
               />
               <Input
-                placeholder="Entity Türü"
+                placeholder="Entity Type"
                 value={newPolicy.entity_type}
                 onChange={(e) => setNewPolicy({ ...newPolicy, entity_type: e.target.value })}
               />
@@ -431,12 +431,12 @@ export default function DragDropPolicyManager({ onPolicyChange }: DragDropPolicy
                 value={newPolicy.action}
                 onChange={(e) => setNewPolicy({ ...newPolicy, action: e.target.value as any })}
               >
-                <option value="allow">İzin Ver</option>
-                <option value="mask">Maskele</option>
-                <option value="block">Engelle</option>
+                <option value="allow">Allow</option>
+                <option value="mask">Mask</option>
+                <option value="block">Block</option>
               </select>
               <Input
-                placeholder="Öncelik (1-10)"
+                placeholder="Priority (1-10)"
                 type="number"
                 min="1"
                 max="10"
@@ -444,12 +444,12 @@ export default function DragDropPolicyManager({ onPolicyChange }: DragDropPolicy
                 onChange={(e) => setNewPolicy({ ...newPolicy, priority: parseInt(e.target.value) })}
               />
               <Input
-                placeholder="Rule Group (opsiyonel)"
+                placeholder="Rule Group (optional)"
                 value={newPolicy.rule_group}
                 onChange={(e) => setNewPolicy({ ...newPolicy, rule_group: e.target.value })}
               />
               <Input
-                placeholder="Açıklama"
+                placeholder="Description"
                 value={newPolicy.description}
                 onChange={(e) => setNewPolicy({ ...newPolicy, description: e.target.value })}
               />
@@ -460,16 +460,16 @@ export default function DragDropPolicyManager({ onPolicyChange }: DragDropPolicy
                   checked={newPolicy.is_active}
                   onChange={(e) => setNewPolicy({ ...newPolicy, is_active: e.target.checked })}
                 />
-                <label htmlFor="is_active" className="text-sm">Aktif</label>
+                <label htmlFor="is_active" className="text-sm">Active</label>
               </div>
             </div>
             <div className="flex justify-end space-x-2 mt-4">
               <Button variant="outline" onClick={() => setShowAddForm(false)}>
-                İptal
+                Cancel
               </Button>
               <Button onClick={createPolicy} disabled={loading}>
                 <Plus className="h-4 w-4 mr-2" />
-                Policy Ekle
+                Add Policy
               </Button>
             </div>
           </CardContent>
@@ -532,7 +532,7 @@ export default function DragDropPolicyManager({ onPolicyChange }: DragDropPolicy
                                 {policy.action}
                               </Badge>
                               <Badge variant={policy.is_active ? "default" : "secondary"}>
-                                {policy.is_active ? "Aktif" : "Pasif"}
+                                {policy.is_active ? "Active" : "Inactive"}
                               </Badge>
                             </div>
                             {policy.description && (
@@ -555,7 +555,7 @@ export default function DragDropPolicyManager({ onPolicyChange }: DragDropPolicy
                             size="sm"
                             onClick={() => updatePolicy(policy.id, { is_active: !policy.is_active })}
                           >
-                            {policy.is_active ? "Pasifleştir" : "Aktifleştir"}
+                            {policy.is_active ? "Disable" : "Enable"}
                           </Button>
                           <Button
                             variant="outline"
@@ -585,8 +585,8 @@ export default function DragDropPolicyManager({ onPolicyChange }: DragDropPolicy
         <Card>
           <CardContent className="text-center py-8">
             <Shield className="h-12 w-12 mx-auto mb-4 opacity-50" />
-            <p className="text-muted-foreground">Hiç policy bulunamadı</p>
-            <p className="text-sm text-muted-foreground">Filtrelerinizi kontrol edin veya yeni policy ekleyin</p>
+            <p className="text-muted-foreground">No policy found</p>
+            <p className="text-sm text-muted-foreground">Check your filters or add a new policy</p>
           </CardContent>
         </Card>
       )}

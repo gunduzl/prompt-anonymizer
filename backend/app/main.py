@@ -15,9 +15,32 @@ from sqlalchemy import text
 
 app = FastAPI(title="Enterprise AI Chat", version="0.1.0", description="Faz 0-1: Local DB auth, temel chat+admin ve DLP/PII ön-işleme")
 
+def expand_loopback_origins(origins: list[str]) -> list[str]:
+    expanded: list[str] = []
+    seen: set[str] = set()
+    for origin in origins:
+        candidates = [origin]
+        if "localhost" in origin:
+            candidates.append(origin.replace("localhost", "127.0.0.1"))
+        if "127.0.0.1" in origin:
+            candidates.append(origin.replace("127.0.0.1", "localhost"))
+        for candidate in candidates:
+            if candidate not in seen:
+                seen.add(candidate)
+                expanded.append(candidate)
+    return expanded
+
 # Resolve allowed origins from settings.FRONTEND_ORIGIN (supports comma-separated list)
-origins_cfg = settings.FRONTEND_ORIGIN or "*"
-allow_origins = [o.strip() for o in origins_cfg.split(",")] if "," in origins_cfg else ([origins_cfg] if origins_cfg else ["*"])
+origins_cfg = settings.FRONTEND_ORIGIN or ""
+if origins_cfg.strip():
+    allow_origins = expand_loopback_origins([o.strip() for o in origins_cfg.split(",") if o.strip()])
+else:
+    allow_origins = expand_loopback_origins([
+        "http://localhost:3000",
+        "http://127.0.0.1:3000",
+        "http://localhost:4000",
+        "http://127.0.0.1:4000",
+    ])
 
 app.add_middleware(
     CORSMiddleware,
@@ -39,6 +62,15 @@ def _startup():
             # New columns for admin features
             conn.execute(text("ALTER TABLE users ADD COLUMN IF NOT EXISTS dlp_violation_count integer NOT NULL DEFAULT 0"))
             conn.execute(text("ALTER TABLE messages ADD COLUMN IF NOT EXISTS dlp_status text"))
+            # LiteLLM keys compatibility columns
+            conn.execute(text("ALTER TABLE litellm_keys ADD COLUMN IF NOT EXISTS key_name text"))
+            conn.execute(text("ALTER TABLE litellm_keys ADD COLUMN IF NOT EXISTS key_alias text"))
+            conn.execute(text("ALTER TABLE litellm_keys ADD COLUMN IF NOT EXISTS expires_at timestamptz"))
+            conn.execute(text("ALTER TABLE litellm_keys ADD COLUMN IF NOT EXISTS max_budget double precision"))
+            conn.execute(text("ALTER TABLE litellm_keys ADD COLUMN IF NOT EXISTS spend double precision NOT NULL DEFAULT 0"))
+            conn.execute(text("ALTER TABLE litellm_keys ADD COLUMN IF NOT EXISTS usage_count integer NOT NULL DEFAULT 0"))
+            conn.execute(text("ALTER TABLE litellm_keys ADD COLUMN IF NOT EXISTS usage_limit integer"))
+            conn.execute(text("ALTER TABLE litellm_keys ADD COLUMN IF NOT EXISTS last_used_at timestamptz"))
             conn.commit()
     except Exception:
         # ignore migration errors in dev startup

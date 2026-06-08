@@ -27,6 +27,78 @@ import {
 import axios from "axios";
 
 const API = process.env.NEXT_PUBLIC_API_BASE || "http://localhost:8080";
+type AdminLocale = "en" | "tr";
+
+const analyticsCopy = {
+  en: {
+    periods: { d7: "Last 7 days", d30: "Last 30 days", d90: "Last 90 days" },
+    allUsers: "All Users",
+    refresh: "Refresh",
+    activeSessions: "Active Sessions",
+    last24: "Last 24 hours",
+    totalViolations: "Total Violations",
+    lastDays: "Last {{days}} days",
+    blockedMessages: "Blocked Messages",
+    maskedMessages: "Masked Messages",
+    userStats: "User-based DLP Statistics",
+    userStatsDesc: "DLP violation counts and session activity by user",
+    searchUsers: "Search users...",
+    user: "User",
+    totalViolation: "Total Violations",
+    recentViolations: "Recent Violations",
+    blocked: "Blocked",
+    masked: "Masked",
+    sessions: "Sessions",
+    lastActivity: "Last Activity",
+    actions: "Actions",
+    total: "total",
+    recentPeriod: "recent period",
+    never: "Never",
+    userSessions: "User Sessions",
+    violatingSessions: "Sessions with DLP Violations",
+    sessionDesc: "Detailed analysis of sessions containing DLP violations",
+    session: "Session",
+    messageCount: "Message Count",
+    dlpViolations: "DLP Violations",
+    lastMessage: "Last Message",
+    dailyTrend: "Daily Violation Trend",
+    violationTypes: "Violation Types",
+  },
+  tr: {
+    periods: { d7: "Son 7 gün", d30: "Son 30 gün", d90: "Son 90 gün" },
+    allUsers: "Tüm Kullanıcılar",
+    refresh: "Yenile",
+    activeSessions: "Aktif Oturumlar",
+    last24: "Son 24 saat",
+    totalViolations: "Toplam İhlaller",
+    lastDays: "Son {{days}} gün",
+    blockedMessages: "Engellenen Mesajlar",
+    maskedMessages: "Maskelenen Mesajlar",
+    userStats: "Kullanıcı Bazlı DLP İstatistikleri",
+    userStatsDesc: "Kullanıcıların DLP ihlal sayıları ve oturum aktiviteleri",
+    searchUsers: "Kullanıcı ara...",
+    user: "Kullanıcı",
+    totalViolation: "Toplam İhlal",
+    recentViolations: "Son İhlaller",
+    blocked: "Engellenen",
+    masked: "Maskelenen",
+    sessions: "Oturumlar",
+    lastActivity: "Son Aktivite",
+    actions: "İşlemler",
+    total: "toplam",
+    recentPeriod: "son dönem",
+    never: "Hiç",
+    userSessions: "Kullanıcı Oturumları",
+    violatingSessions: "DLP İhlalli Oturumlar",
+    sessionDesc: "DLP ihlali içeren oturumların detaylı analizi",
+    session: "Oturum",
+    messageCount: "Mesaj Sayısı",
+    dlpViolations: "DLP İhlalleri",
+    lastMessage: "Son Mesaj",
+    dailyTrend: "Günlük İhlal Trendi",
+    violationTypes: "İhlal Türleri",
+  },
+} as const;
 
 interface UserAnalytics {
   user_id: string;
@@ -67,7 +139,9 @@ axiosWithAuth.interceptors.request.use((config) => {
   return config;
 });
 
-export default function DLPAnalyticsDashboard() {
+export default function DLPAnalyticsDashboard({ locale = "en" }: { locale?: AdminLocale }) {
+  const copy = analyticsCopy[locale];
+  const dateLocale = locale === "tr" ? "tr-TR" : "en-US";
   const [userAnalytics, setUserAnalytics] = useState<{
     users: UserAnalytics[];
     active_sessions: number;
@@ -141,8 +215,8 @@ export default function DLPAnalyticsDashboard() {
   );
 
   const formatDate = (dateString: string | null) => {
-    if (!dateString) return "Hiç";
-    return new Date(dateString).toLocaleDateString("tr-TR", {
+    if (!dateString) return copy.never;
+    return new Date(dateString).toLocaleDateString(dateLocale, {
       year: "numeric",
       month: "short",
       day: "numeric",
@@ -161,9 +235,9 @@ export default function DLPAnalyticsDashboard() {
             onChange={(e) => setSelectedPeriod(Number(e.target.value))}
             className="px-3 py-2 border rounded-md bg-background"
           >
-            <option value={7}>Son 7 gün</option>
-            <option value={30}>Son 30 gün</option>
-            <option value={90}>Son 90 gün</option>
+            <option value={7}>{copy.periods.d7}</option>
+            <option value={30}>{copy.periods.d30}</option>
+            <option value={90}>{copy.periods.d90}</option>
           </select>
           {selectedUserId && (
             <Button
@@ -171,13 +245,13 @@ export default function DLPAnalyticsDashboard() {
               onClick={() => setSelectedUserId(null)}
               size="sm"
             >
-              Tüm Kullanıcılar
+              {copy.allUsers}
             </Button>
           )}
         </div>
         <Button onClick={loadAllAnalytics} disabled={loading}>
           <RefreshCw className={`h-4 w-4 mr-2 ${loading ? "animate-spin" : ""}`} />
-          Yenile
+          {copy.refresh}
         </Button>
       </div>
 
@@ -186,53 +260,53 @@ export default function DLPAnalyticsDashboard() {
         <div className="grid gap-4 md:grid-cols-4">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Aktif Oturumlar</CardTitle>
+              <CardTitle className="text-sm font-medium">{copy.activeSessions}</CardTitle>
               <Activity className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold text-green-600">
                 {userAnalytics.active_sessions}
               </div>
-              <p className="text-xs text-muted-foreground">Son 24 saat</p>
+              <p className="text-xs text-muted-foreground">{copy.last24}</p>
             </CardContent>
           </Card>
 
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Toplam İhlaller</CardTitle>
+              <CardTitle className="text-sm font-medium">{copy.totalViolations}</CardTitle>
               <AlertTriangle className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold text-red-600">
                 {userAnalytics.users.reduce((sum, user) => sum + user.recent_violations, 0)}
               </div>
-              <p className="text-xs text-muted-foreground">Son {selectedPeriod} gün</p>
+              <p className="text-xs text-muted-foreground">{copy.lastDays.replace("{{days}}", String(selectedPeriod))}</p>
             </CardContent>
           </Card>
 
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Engellenen Mesajlar</CardTitle>
+              <CardTitle className="text-sm font-medium">{copy.blockedMessages}</CardTitle>
               <XCircle className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold text-red-500">
                 {userAnalytics.users.reduce((sum, user) => sum + user.blocked_messages, 0)}
               </div>
-              <p className="text-xs text-muted-foreground">Son {selectedPeriod} gün</p>
+              <p className="text-xs text-muted-foreground">{copy.lastDays.replace("{{days}}", String(selectedPeriod))}</p>
             </CardContent>
           </Card>
 
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Maskelenen Mesajlar</CardTitle>
+              <CardTitle className="text-sm font-medium">{copy.maskedMessages}</CardTitle>
               <Shield className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold text-orange-500">
                 {userAnalytics.users.reduce((sum, user) => sum + user.masked_messages, 0)}
               </div>
-              <p className="text-xs text-muted-foreground">Son {selectedPeriod} gün</p>
+              <p className="text-xs text-muted-foreground">{copy.lastDays.replace("{{days}}", String(selectedPeriod))}</p>
             </CardContent>
           </Card>
         </div>
@@ -243,13 +317,13 @@ export default function DLPAnalyticsDashboard() {
         <CardHeader>
           <div className="flex items-center justify-between">
             <div>
-              <CardTitle>Kullanıcı Bazlı DLP İstatistikleri</CardTitle>
+              <CardTitle>{copy.userStats}</CardTitle>
               <CardDescription>
-                Kullanıcıların DLP ihlal sayıları ve session aktiviteleri
+                {copy.userStatsDesc}
               </CardDescription>
             </div>
             <Input
-              placeholder="Kullanıcı ara..."
+              placeholder={copy.searchUsers}
               value={userFilter}
               onChange={(e) => setUserFilter(e.target.value)}
               className="w-64"
@@ -261,14 +335,14 @@ export default function DLPAnalyticsDashboard() {
             <table className="w-full">
               <thead>
                 <tr className="border-b">
-                  <th className="text-left p-2">Kullanıcı</th>
-                  <th className="text-left p-2">Toplam İhlal</th>
-                  <th className="text-left p-2">Son İhlaller</th>
-                  <th className="text-left p-2">Engellenen</th>
-                  <th className="text-left p-2">Maskelenen</th>
-                  <th className="text-left p-2">Oturumlar</th>
-                  <th className="text-left p-2">Son Aktivite</th>
-                  <th className="text-left p-2">İşlemler</th>
+                  <th className="text-left p-2">{copy.user}</th>
+                  <th className="text-left p-2">{copy.totalViolation}</th>
+                  <th className="text-left p-2">{copy.recentViolations}</th>
+                  <th className="text-left p-2">{copy.blocked}</th>
+                  <th className="text-left p-2">{copy.masked}</th>
+                  <th className="text-left p-2">{copy.sessions}</th>
+                  <th className="text-left p-2">{copy.lastActivity}</th>
+                  <th className="text-left p-2">{copy.actions}</th>
                 </tr>
               </thead>
               <tbody>
@@ -298,8 +372,8 @@ export default function DLPAnalyticsDashboard() {
                     </td>
                     <td className="p-2">
                       <div className="text-sm">
-                        <div>{user.total_sessions} toplam</div>
-                        <div className="text-muted-foreground">{user.recent_sessions} son dönem</div>
+                        <div>{user.total_sessions} {copy.total}</div>
+                        <div className="text-muted-foreground">{user.recent_sessions} {copy.recentPeriod}</div>
                       </div>
                     </td>
                     <td className="p-2 text-sm">{formatDate(user.last_activity)}</td>
@@ -325,10 +399,10 @@ export default function DLPAnalyticsDashboard() {
         <Card>
           <CardHeader>
             <CardTitle>
-              {selectedUserId ? "Kullanıcı Oturumları" : "DLP İhlalli Oturumlar"}
+              {selectedUserId ? copy.userSessions : copy.violatingSessions}
             </CardTitle>
             <CardDescription>
-              DLP ihlali içeren oturumların detaylı analizi
+              {copy.sessionDesc}
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -336,13 +410,13 @@ export default function DLPAnalyticsDashboard() {
               <table className="w-full">
                 <thead>
                   <tr className="border-b">
-                    <th className="text-left p-2">Oturum</th>
-                    <th className="text-left p-2">Kullanıcı</th>
-                    <th className="text-left p-2">Mesaj Sayısı</th>
-                    <th className="text-left p-2">DLP İhlalleri</th>
-                    <th className="text-left p-2">Engellenen</th>
-                    <th className="text-left p-2">Maskelenen</th>
-                    <th className="text-left p-2">Son Mesaj</th>
+                    <th className="text-left p-2">{copy.session}</th>
+                    <th className="text-left p-2">{copy.user}</th>
+                    <th className="text-left p-2">{copy.messageCount}</th>
+                    <th className="text-left p-2">{copy.dlpViolations}</th>
+                    <th className="text-left p-2">{copy.blocked}</th>
+                    <th className="text-left p-2">{copy.masked}</th>
+                    <th className="text-left p-2">{copy.lastMessage}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -385,7 +459,7 @@ export default function DLPAnalyticsDashboard() {
         <div className="grid gap-6 md:grid-cols-2">
           <Card>
             <CardHeader>
-              <CardTitle>Günlük İhlal Trendi</CardTitle>
+              <CardTitle>{copy.dailyTrend}</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="space-y-2">
@@ -409,7 +483,7 @@ export default function DLPAnalyticsDashboard() {
 
           <Card>
             <CardHeader>
-              <CardTitle>İhlal Türleri</CardTitle>
+              <CardTitle>{copy.violationTypes}</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">

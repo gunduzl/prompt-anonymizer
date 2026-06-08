@@ -15,13 +15,13 @@ interface Entity {
 
 interface CriteriaCondition {
   id: string;
-  condition_type: string;
+  condition_type: "prompt_contains" | "entity_detected" | "user_is" | "regex" | "file_type" | "file_size";
   entity_types?: string[];
   text_patterns?: string[];
   regex_pattern?: string;
   user_conditions?: Record<string, any>;
   file_conditions?: Record<string, any>;
-  logical_operator: string;
+  logical_operator: "AND" | "OR";
   negate: boolean;
 }
 
@@ -56,7 +56,7 @@ export default function AdvancedCriteriaBuilder({ criteria, onChange }: Advanced
   const loadEntities = async () => {
     try {
       setLoading(true);
-      const API = process.env.NEXT_PUBLIC_API_BASE || "http://localhost:8080/api";
+      const API = process.env.NEXT_PUBLIC_API_BASE || "http://localhost:8080";
       const token = localStorage.getItem("auth_token");
       const response = await axios.get(`${API}/admin/dlp/entities`, {
         headers: token ? { Authorization: `Bearer ${token}` } : {}
@@ -149,7 +149,7 @@ export default function AdvancedCriteriaBuilder({ criteria, onChange }: Advanced
                   <select
                     className="w-full px-3 py-2 border border-input bg-background rounded-md"
                     value={condition.condition_type}
-                    onChange={(e) => updateCriteriaCondition(condition.id, { condition_type: e.target.value })}
+                    onChange={(e) => updateCriteriaCondition(condition.id, { condition_type: e.target.value as CriteriaCondition["condition_type"] })}
                   >
                     {CONDITION_TYPES.map(type => (
                       <option key={type.value} value={type.value}>
@@ -164,7 +164,7 @@ export default function AdvancedCriteriaBuilder({ criteria, onChange }: Advanced
                   <select
                     className="w-full px-3 py-2 border border-input bg-background rounded-md"
                     value={condition.logical_operator}
-                    onChange={(e) => updateCriteriaCondition(condition.id, { logical_operator: e.target.value })}
+                    onChange={(e) => updateCriteriaCondition(condition.id, { logical_operator: e.target.value as CriteriaCondition["logical_operator"] })}
                   >
                     {LOGICAL_OPERATORS.map(op => (
                       <option key={op.value} value={op.value}>

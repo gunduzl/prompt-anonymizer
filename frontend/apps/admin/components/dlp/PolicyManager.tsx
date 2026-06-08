@@ -25,7 +25,7 @@ import {
 } from "lucide-react";
 import axios from "axios";
 
-const API = process.env.NEXT_PUBLIC_API_BASE || "http://localhost:8080/api";
+const API = process.env.NEXT_PUBLIC_API_BASE || "http://localhost:8080";
 
 interface Policy {
   id: string;
@@ -134,7 +134,7 @@ export default function PolicyManager({ onPolicyChange }: PolicyManagerProps) {
 
   const createPolicy = async () => {
     if (!newPolicy.name || !newPolicy.entity_type) {
-      alert("Policy adı ve entity türü gereklidir");
+      alert("Policy name and entity type are required");
       return;
     }
 
@@ -154,7 +154,7 @@ export default function PolicyManager({ onPolicyChange }: PolicyManagerProps) {
       loadPolicies();
       onPolicyChange?.();
     } catch (error: any) {
-      alert(error.response?.data?.detail || "Policy oluşturulamadı");
+      alert(error.response?.data?.detail || "Policy could not be created");
     } finally {
       setLoading(false);
     }
@@ -167,14 +167,14 @@ export default function PolicyManager({ onPolicyChange }: PolicyManagerProps) {
       loadPolicies();
       onPolicyChange?.();
     } catch (error: any) {
-      alert(error.response?.data?.detail || "Policy güncellenemedi");
+      alert(error.response?.data?.detail || "Policy could not be updated");
     } finally {
       setLoading(false);
     }
   };
 
   const deletePolicy = async (policyId: string) => {
-    if (!confirm("Bu policy silinsin mi?")) return;
+    if (!confirm("Delete this policy?")) return;
 
     setLoading(true);
     try {
@@ -204,7 +204,7 @@ export default function PolicyManager({ onPolicyChange }: PolicyManagerProps) {
       loadPolicies();
       onPolicyChange?.();
     } catch (error: any) {
-      alert(error.response?.data?.detail || "Policy sıralaması değiştirilemedi");
+      alert(error.response?.data?.detail || "Policy order could not be changed");
     } finally {
       setLoading(false);
     }
@@ -212,11 +212,11 @@ export default function PolicyManager({ onPolicyChange }: PolicyManagerProps) {
 
   const bulkOperation = async (operation: BulkOperation) => {
     if (operation.policy_ids.length === 0) {
-      alert("Lütfen en az bir policy seçin");
+      alert("Please select at least one policy");
       return;
     }
 
-    if (!confirm(`${operation.policy_ids.length} policy için ${operation.operation} işlemi yapılsın mı?`)) {
+    if (!confirm(`${operation.policy_ids.length} for policies ${operation.operation} operation should be applied?`)) {
       return;
     }
 
@@ -227,14 +227,14 @@ export default function PolicyManager({ onPolicyChange }: PolicyManagerProps) {
       loadPolicies();
       onPolicyChange?.();
     } catch (error: any) {
-      alert(error.response?.data?.detail || "Bulk işlem başarısız");
+      alert(error.response?.data?.detail || "Bulk operation failed");
     } finally {
       setLoading(false);
     }
   };
 
   const applyTemplate = async (templateId: string) => {
-    if (!confirm("Bu template uygulanacak, mevcut policy'ler etkilenebilir. Devam edilsin mi?")) {
+    if (!confirm("This template will be applied and existing policies may be affected. Continue?")) {
       return;
     }
 
@@ -244,7 +244,7 @@ export default function PolicyManager({ onPolicyChange }: PolicyManagerProps) {
       loadPolicies();
       onPolicyChange?.();
     } catch (error: any) {
-      alert(error.response?.data?.detail || "Template uygulanamadı");
+      alert(error.response?.data?.detail || "Template could not be applied");
     } finally {
       setLoading(false);
     }
@@ -262,7 +262,7 @@ export default function PolicyManager({ onPolicyChange }: PolicyManagerProps) {
       link.click();
       URL.revokeObjectURL(url);
     } catch (error) {
-      alert("Export işlemi başarısız");
+      alert("Export failed");
     }
   };
 
@@ -301,9 +301,9 @@ export default function PolicyManager({ onPolicyChange }: PolicyManagerProps) {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h3 className="text-2xl font-bold tracking-tight">Policy Yönetimi</h3>
+          <h3 className="text-2xl font-bold tracking-tight">Policy Management</h3>
           <p className="text-muted-foreground">
-            DLP policy'lerini yönet ve düzenle
+            Manage and edit DLP policies
           </p>
         </div>
         <div className="flex items-center space-x-2">
@@ -313,11 +313,11 @@ export default function PolicyManager({ onPolicyChange }: PolicyManagerProps) {
           </Button>
           <Button onClick={loadPolicies} disabled={loading}>
             <RefreshCw className={`h-4 w-4 mr-2 ${loading ? "animate-spin" : ""}`} />
-            Yenile
+            Refresh
           </Button>
           <Button onClick={() => setShowAddForm(true)}>
             <Plus className="h-4 w-4 mr-2" />
-            Yeni Policy
+            New Policy
           </Button>
         </div>
       </div>
@@ -325,14 +325,14 @@ export default function PolicyManager({ onPolicyChange }: PolicyManagerProps) {
       {/* Filters and Search */}
       <Card>
         <CardHeader>
-          <CardTitle>Filtreler ve Arama</CardTitle>
+          <CardTitle>Filters and Search</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="grid gap-4 md:grid-cols-5">
             <div className="relative">
               <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
               <Input
-                placeholder="Policy ara..."
+                placeholder="Search policy..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="pl-10"
@@ -343,7 +343,7 @@ export default function PolicyManager({ onPolicyChange }: PolicyManagerProps) {
               value={filterAction}
               onChange={(e) => setFilterAction(e.target.value as any)}
             >
-              <option value="all">Tüm Aksiyonlar</option>
+              <option value="all">All Actions</option>
               <option value="allow">Allow</option>
               <option value="mask">Mask</option>
               <option value="block">Block</option>
@@ -353,9 +353,9 @@ export default function PolicyManager({ onPolicyChange }: PolicyManagerProps) {
               value={filterActive}
               onChange={(e) => setFilterActive(e.target.value as any)}
             >
-              <option value="all">Tüm Durumlar</option>
-              <option value="active">Aktif</option>
-              <option value="inactive">Pasif</option>
+              <option value="all">All Statuses</option>
+              <option value="active">Active</option>
+              <option value="inactive">Inactive</option>
             </select>
             <select
               className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
@@ -366,19 +366,19 @@ export default function PolicyManager({ onPolicyChange }: PolicyManagerProps) {
                 setSortOrder(order as any);
               }}
             >
-              <option value="priority-desc">Öncelik (Yüksek → Düşük)</option>
-              <option value="priority-asc">Öncelik (Düşük → Yüksek)</option>
-              <option value="name-asc">İsim (A-Z)</option>
-              <option value="name-desc">İsim (Z-A)</option>
-              <option value="created_at-desc">Tarih (Yeni)</option>
-              <option value="created_at-asc">Tarih (Eski)</option>
+              <option value="priority-desc">Priority (High to Low)</option>
+              <option value="priority-asc">Priority (Low to High)</option>
+              <option value="name-asc">Name (A-Z)</option>
+              <option value="name-desc">Name (Z-A)</option>
+              <option value="created_at-desc">Date (Newest)</option>
+              <option value="created_at-asc">Date (Oldest)</option>
             </select>
             <div className="flex items-center space-x-2">
               <Badge variant="outline">
-                Toplam: {pagination.total}
+                Total: {pagination.total}
               </Badge>
               <Badge variant="secondary">
-                Seçili: {selectedPolicies.length}
+                Selected: {selectedPolicies.length}
               </Badge>
             </div>
           </div>
@@ -389,9 +389,9 @@ export default function PolicyManager({ onPolicyChange }: PolicyManagerProps) {
       {templates.length > 0 && (
         <Card>
           <CardHeader>
-            <CardTitle>Policy Template'leri</CardTitle>
+            <CardTitle>Policy Templates</CardTitle>
             <CardDescription>
-              Hazır template'leri uygulayarak hızlı policy kurulumu yapın
+              Apply ready-made templates for quick policy setup
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -412,7 +412,7 @@ export default function PolicyManager({ onPolicyChange }: PolicyManagerProps) {
                     className="w-full"
                   >
                     <FileText className="h-4 w-4 mr-2" />
-                    Template Uygula
+                    Apply Template
                   </Button>
                 </div>
               ))}
@@ -425,7 +425,7 @@ export default function PolicyManager({ onPolicyChange }: PolicyManagerProps) {
       {selectedPolicies.length > 0 && (
         <Card>
           <CardHeader>
-            <CardTitle>Toplu İşlemler ({selectedPolicies.length} seçili)</CardTitle>
+            <CardTitle>Bulk Actions ({selectedPolicies.length} selected)</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="flex items-center space-x-2">
@@ -434,27 +434,27 @@ export default function PolicyManager({ onPolicyChange }: PolicyManagerProps) {
                 onClick={() => bulkOperation({ operation: "activate", policy_ids: selectedPolicies })}
               >
                 <CheckCircle className="h-4 w-4 mr-2" />
-                Aktifleştir
+                Enable
               </Button>
               <Button
                 variant="outline"
                 onClick={() => bulkOperation({ operation: "deactivate", policy_ids: selectedPolicies })}
               >
                 <AlertTriangle className="h-4 w-4 mr-2" />
-                Pasifleştir
+                Disable
               </Button>
               <Button
                 variant="destructive"
                 onClick={() => bulkOperation({ operation: "delete", policy_ids: selectedPolicies })}
               >
                 <Trash2 className="h-4 w-4 mr-2" />
-                Sil
+                Delete
               </Button>
               <Button
                 variant="outline"
                 onClick={() => setSelectedPolicies([])}
               >
-                Seçimi Temizle
+                Clear Selection
               </Button>
             </div>
           </CardContent>
@@ -465,20 +465,20 @@ export default function PolicyManager({ onPolicyChange }: PolicyManagerProps) {
       {showAddForm && (
         <Card>
           <CardHeader>
-            <CardTitle>Yeni Policy Ekle</CardTitle>
+            <CardTitle>New Add Policy</CardTitle>
             <CardDescription>
-              Yeni bir DLP policy tanımı oluşturun
+              Create a new DLP policy definition
             </CardDescription>
           </CardHeader>
           <CardContent>
             <div className="grid gap-4 md:grid-cols-2">
               <Input
-                placeholder="Policy Adı"
+                placeholder="Policy Name"
                 value={newPolicy.name}
                 onChange={(e) => setNewPolicy({ ...newPolicy, name: e.target.value })}
               />
               <Input
-                placeholder="Entity Türü (ör. PERSON, EMAIL)"
+                placeholder="Entity Type (e.g. PERSON, EMAIL)"
                 value={newPolicy.entity_type}
                 onChange={(e) => setNewPolicy({ ...newPolicy, entity_type: e.target.value.toUpperCase() })}
               />
@@ -487,12 +487,12 @@ export default function PolicyManager({ onPolicyChange }: PolicyManagerProps) {
                 value={newPolicy.action}
                 onChange={(e) => setNewPolicy({ ...newPolicy, action: e.target.value as any })}
               >
-                <option value="allow">Allow (İzin Ver)</option>
-                <option value="mask">Mask (Maskele)</option>
-                <option value="block">Block (Engelle)</option>
+                <option value="allow">Allow</option>
+                <option value="mask">Mask</option>
+                <option value="block">Block</option>
               </select>
               <Input
-                placeholder="Öncelik (1-100)"
+                placeholder="Priority (1-100)"
                 type="number"
                 min="1"
                 max="100"
@@ -500,7 +500,7 @@ export default function PolicyManager({ onPolicyChange }: PolicyManagerProps) {
                 onChange={(e) => setNewPolicy({ ...newPolicy, priority: parseInt(e.target.value) })}
               />
               <Input
-                placeholder="Açıklama"
+                placeholder="Description"
                 value={newPolicy.description}
                 onChange={(e) => setNewPolicy({ ...newPolicy, description: e.target.value })}
                 className="md:col-span-2"
@@ -512,16 +512,16 @@ export default function PolicyManager({ onPolicyChange }: PolicyManagerProps) {
                   checked={newPolicy.is_active}
                   onChange={(e) => setNewPolicy({ ...newPolicy, is_active: e.target.checked })}
                 />
-                <label htmlFor="is_active_new" className="text-sm">Aktif</label>
+                <label htmlFor="is_active_new" className="text-sm">Active</label>
               </div>
             </div>
             <div className="flex justify-end space-x-2 mt-4">
               <Button variant="outline" onClick={() => setShowAddForm(false)}>
-                İptal
+                Cancel
               </Button>
               <Button onClick={createPolicy} disabled={loading}>
                 <Plus className="h-4 w-4 mr-2" />
-                Policy Ekle
+                Add Policy
               </Button>
             </div>
           </CardContent>
@@ -532,14 +532,14 @@ export default function PolicyManager({ onPolicyChange }: PolicyManagerProps) {
       <Card>
         <CardHeader>
           <div className="flex items-center justify-between">
-            <CardTitle>Policy Listesi ({policies.length})</CardTitle>
+            <CardTitle>Policy List ({policies.length})</CardTitle>
             <div className="flex items-center space-x-2">
               <Button
                 variant="outline"
                 size="sm"
                 onClick={selectAllPolicies}
               >
-                {selectedPolicies.length === policies.length ? "Tümünü Kaldır" : "Tümünü Seç"}
+                {selectedPolicies.length === policies.length ? "Clear All" : "Select All"}
               </Button>
             </div>
           </div>
@@ -570,7 +570,7 @@ export default function PolicyManager({ onPolicyChange }: PolicyManagerProps) {
                         {policy.action.toUpperCase()}
                       </Badge>
                       {!policy.is_active && (
-                        <Badge variant="secondary">PASİF</Badge>
+                        <Badge variant="secondary">INACTIVE</Badge>
                       )}
                     </div>
                     {policy.description && (
@@ -579,7 +579,7 @@ export default function PolicyManager({ onPolicyChange }: PolicyManagerProps) {
                       </p>
                     )}
                     <p className="text-xs text-muted-foreground">
-                      Oluşturan: {policy.created_by} • {new Date(policy.created_at).toLocaleDateString("tr-TR")}
+                      Created by: {policy.created_by} • {new Date(policy.created_at).toLocaleDateString("tr-TR")}
                     </p>
                   </div>
                 </div>
@@ -609,7 +609,7 @@ export default function PolicyManager({ onPolicyChange }: PolicyManagerProps) {
                     size="sm"
                     onClick={() => updatePolicy(policy.id, { is_active: !policy.is_active })}
                   >
-                    {policy.is_active ? "Pasifleştir" : "Aktifleştir"}
+                    {policy.is_active ? "Disable" : "Enable"}
                   </Button>
                   <Button
                     variant="outline"
@@ -631,8 +631,8 @@ export default function PolicyManager({ onPolicyChange }: PolicyManagerProps) {
             {policies.length === 0 && (
               <div className="text-center py-8 text-muted-foreground">
                 <Shield className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                <p>Hiç policy bulunamadı</p>
-                <p className="text-sm">Filtrelerinizi kontrol edin veya yeni policy ekleyin</p>
+                <p>No policy found</p>
+                <p className="text-sm">Check your filters or add a new policy</p>
               </div>
             )}
           </div>
@@ -650,7 +650,7 @@ export default function PolicyManager({ onPolicyChange }: PolicyManagerProps) {
                   onClick={() => setPagination(prev => ({ ...prev, page: prev.page - 1 }))}
                   disabled={pagination.page === 1}
                 >
-                  Önceki
+                  Previous
                 </Button>
                 <Button
                   variant="outline"
@@ -658,7 +658,7 @@ export default function PolicyManager({ onPolicyChange }: PolicyManagerProps) {
                   onClick={() => setPagination(prev => ({ ...prev, page: prev.page + 1 }))}
                   disabled={pagination.page * pagination.limit >= pagination.total}
                 >
-                  Sonraki
+                  Next
                 </Button>
               </div>
             </div>

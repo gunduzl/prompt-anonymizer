@@ -30,7 +30,7 @@ import {
   Zap,
 } from "lucide-react";
 
-const API = process.env.NEXT_PUBLIC_API_BASE || "http://localhost:8080/api";
+const API = process.env.NEXT_PUBLIC_API_BASE || "http://localhost:8080";
 
 // Interface definitions
 interface RuleSetCriteria {
@@ -74,6 +74,7 @@ interface RuleSet {
 
 interface RuleSetManagerProps {
   onRuleSetChange?: () => void;
+  locale?: "en" | "tr";
 }
 
 const axiosWithAuth = axios.create();
@@ -83,7 +84,62 @@ axiosWithAuth.interceptors.request.use((config) => {
   return config;
 });
 
-export default function RuleSetManager({ onRuleSetChange }: RuleSetManagerProps) {
+export default function RuleSetManager({ onRuleSetChange, locale = "en" }: RuleSetManagerProps) {
+  const t = {
+    title: locale === "en" ? "Rule Sets" : "Rule Setleri",
+    subtitle: locale === "en" ? "Manage DLP rules and define priority ordering" : "DLP kurallarını yönetin ve öncelik sıralarını belirleyin",
+    newRuleSet: locale === "en" ? "New Rule Set" : "Yeni Rule Set",
+    search: locale === "en" ? "Search rule set..." : "Rule set ara...",
+    allStatuses: locale === "en" ? "All Statuses" : "Tüm Durumlar",
+    active: locale === "en" ? "Active" : "Aktif",
+    inactive: locale === "en" ? "Inactive" : "Pasif",
+    allCategories: locale === "en" ? "All Categories" : "Tüm Kategoriler",
+    security: locale === "en" ? "Security" : "Güvenlik",
+    compliance: locale === "en" ? "Compliance" : "Uyumluluk",
+    custom: locale === "en" ? "Custom" : "Özel",
+    priority: locale === "en" ? "Priority" : "Öncelik",
+    name: locale === "en" ? "Name" : "İsim",
+    createdAt: locale === "en" ? "Created Date" : "Oluşturma Tarihi",
+    rulesCount: locale === "en" ? "Rule Count" : "Kural Sayısı",
+    loading: locale === "en" ? "Loading..." : "Yükleniyor...",
+    empty: locale === "en" ? "No rule set found." : "Hiç rule set bulunamadı.",
+    created: locale === "en" ? "Created" : "Oluşturulma",
+    rulesLabel: locale === "en" ? "rules" : "kural",
+    rulesTitle: locale === "en" ? "Rules:" : "Kurallar:",
+    rulePrefix: locale === "en" ? "Rule" : "Kural",
+    actionLabel: locale === "en" ? "Action" : "Eylem",
+    editRuleSet: locale === "en" ? "Edit Rule Set" : "Kural Setini Düzenle",
+    createRuleSet: locale === "en" ? "New Rule Set" : "Yeni Kural Seti",
+    ruleSetName: locale === "en" ? "Rule Set Name" : "Kural Seti Adı",
+    category: locale === "en" ? "Category" : "Kategori",
+    highest: locale === "en" ? "1 = Highest" : "1 = En Yüksek",
+    tags: locale === "en" ? "Tags" : "Etiketler",
+    addTag: locale === "en" ? "Add tag..." : "Etiket ekle...",
+    description: locale === "en" ? "Description" : "Açıklama",
+    ruleSetDesc: locale === "en" ? "Rule set description..." : "Kural setinin açıklaması...",
+    advanced: locale === "en" ? "Advanced Criteria Builder" : "Gelişmiş Kriter Oluşturucu",
+    rules: locale === "en" ? "Rules" : "Kurallar",
+    addRule: locale === "en" ? "Add Rule" : "Kural Ekle",
+    ruleName: locale === "en" ? "Rule Name" : "Kural Adı",
+    exampleRule: locale === "en" ? "e.g. Credit Card Detection" : "Örn: Kredi Kartı Tespiti",
+    action: locale === "en" ? "Action" : "Aksiyon",
+    ruleCriteria: locale === "en" ? "Rule Criteria" : "Kural Kriterleri",
+    ruleDesc: locale === "en" ? "Rule description..." : "Kural açıklaması...",
+    noRuleYet: locale === "en" ? "No Rule Yet" : "Henüz Kural Yok",
+    addFirstRule: locale === "en" ? "Add your first rule to this rule set" : "Bu kural setine ilk kuralınızı ekleyin",
+    addFirstRuleBtn: locale === "en" ? "Add First Rule" : "İlk Kuralı Ekle",
+    saving: locale === "en" ? "Saving..." : "Kaydediliyor...",
+    update: locale === "en" ? "Update" : "Güncelle",
+    create: locale === "en" ? "Create" : "Oluştur",
+    cancel: locale === "en" ? "Cancel" : "İptal",
+    listRulesTitle: locale === "en" ? "RULES" : "KURALLAR",
+    criteriaDefined: locale === "en" ? "criteria defined" : "kriter tanımlanmış",
+    criteriaUndefined: locale === "en" ? "Criteria not defined" : "Kriter tanımlanmamış",
+    noRulesInSet: locale === "en" ? "No rule found in this rule set yet" : "Bu kural setinde henüz kural bulunmuyor",
+    emptyTitle: locale === "en" ? "No rule set yet" : "Henüz kural seti bulunmuyor",
+    emptyDesc: locale === "en" ? "Use the \"New Rule Set\" button above to create your first rule set." : "İlk kural setinizi oluşturmak için yukarıdaki \"Yeni Kural Seti\" butonunu kullanın.",
+    createFirst: locale === "en" ? "Create First Rule Set" : "İlk Kural Setini Oluştur",
+  };
   const [ruleSets, setRuleSets] = useState<RuleSet[]>([]);
   const [loading, setLoading] = useState(false);
   const [showAddForm, setShowAddForm] = useState(false);
@@ -152,7 +208,7 @@ export default function RuleSetManager({ onRuleSetChange }: RuleSetManagerProps)
   };
 
   const deleteRuleSet = async (id: string) => {
-    if (!confirm("Bu kural setini silmek istediğinizden emin misiniz?")) return;
+    if (!confirm(locale === "en" ? "Are you sure you want to delete this rule set?" : "Bu kural setini silmek istediğinizden emin misiniz?")) return;
 
     try {
       await axiosWithAuth.delete(`${API}/admin/dlp/rule-sets/${id}`);
@@ -363,10 +419,10 @@ export default function RuleSetManager({ onRuleSetChange }: RuleSetManagerProps)
 
   const getActionLabel = (action: string) => {
     switch (action) {
-      case "allow": return "İzin Ver";
-      case "mask": return "Maskele";
-      case "block": return "Engelle";
-      case "remove": return "Kaldır";
+      case "allow": return locale === "en" ? "Allow" : "İzin Ver";
+      case "mask": return locale === "en" ? "Mask" : "Maskele";
+      case "block": return locale === "en" ? "Block" : "Engelle";
+      case "remove": return locale === "en" ? "Remove" : "Kaldır";
       default: return action;
     }
   };
@@ -380,12 +436,12 @@ export default function RuleSetManager({ onRuleSetChange }: RuleSetManagerProps)
       {/* Header */}
       <div className="flex justify-between items-center">
         <div>
-          <h2 className="text-2xl font-bold text-gray-900">Rule Sets</h2>
-          <p className="text-gray-600">DLP kurallarını yönetin ve öncelik sıralarını belirleyin</p>
+          <h2 className="text-2xl font-bold text-gray-900">{t.title}</h2>
+          <p className="text-gray-600">{t.subtitle}</p>
         </div>
         <Button onClick={() => setShowAddForm(true)} className="flex items-center gap-2">
           <Plus className="h-4 w-4" />
-          Yeni Rule Set
+          {t.newRuleSet}
         </Button>
       </div>
 
@@ -395,7 +451,7 @@ export default function RuleSetManager({ onRuleSetChange }: RuleSetManagerProps)
           <div className="flex flex-wrap gap-4 items-center">
             <div className="flex-1 min-w-64">
               <Input
-                placeholder="Rule set ara..."
+                placeholder={t.search}
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="w-full"
@@ -408,9 +464,9 @@ export default function RuleSetManager({ onRuleSetChange }: RuleSetManagerProps)
                 onChange={(e) => setFilterActive(e.target.value)}
                 className="px-3 py-2 border border-gray-300 rounded-md text-sm"
               >
-                <option value="all">Tüm Durumlar</option>
-                <option value="active">Aktif</option>
-                <option value="inactive">Pasif</option>
+                <option value="all">{t.allStatuses}</option>
+                <option value="active">{t.active}</option>
+                <option value="inactive">{t.inactive}</option>
               </select>
 
               <select
@@ -418,10 +474,10 @@ export default function RuleSetManager({ onRuleSetChange }: RuleSetManagerProps)
                 onChange={(e) => setFilterCategory(e.target.value)}
                 className="px-3 py-2 border border-gray-300 rounded-md text-sm"
               >
-                <option value="all">Tüm Kategoriler</option>
-                <option value="security">Güvenlik</option>
-                <option value="compliance">Uyumluluk</option>
-                <option value="custom">Özel</option>
+                <option value="all">{t.allCategories}</option>
+                <option value="security">{t.security}</option>
+                <option value="compliance">{t.compliance}</option>
+                <option value="custom">{t.custom}</option>
               </select>
 
               <select
@@ -429,10 +485,10 @@ export default function RuleSetManager({ onRuleSetChange }: RuleSetManagerProps)
                 onChange={(e) => setSortBy(e.target.value)}
                 className="px-3 py-2 border border-gray-300 rounded-md text-sm"
               >
-                <option value="priority">Öncelik</option>
-                <option value="name">İsim</option>
-                <option value="created_at">Oluşturma Tarihi</option>
-                <option value="rules_count">Kural Sayısı</option>
+                <option value="priority">{t.priority}</option>
+                <option value="name">{t.name}</option>
+                <option value="created_at">{t.createdAt}</option>
+                <option value="rules_count">{t.rulesCount}</option>
               </select>
 
               <Button
@@ -452,12 +508,12 @@ export default function RuleSetManager({ onRuleSetChange }: RuleSetManagerProps)
         {loading ? (
           <div className="text-center py-8">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
-            <p className="mt-2 text-gray-600">Yükleniyor...</p>
+            <p className="mt-2 text-gray-600">{t.loading}</p>
           </div>
         ) : filteredAndSortedRuleSets.length === 0 ? (
           <Card>
             <CardContent className="text-center py-8">
-              <p className="text-gray-500">Hiç rule set bulunamadı.</p>
+              <p className="text-gray-500">{t.empty}</p>
             </CardContent>
           </Card>
         ) : (
@@ -503,7 +559,7 @@ export default function RuleSetManager({ onRuleSetChange }: RuleSetManagerProps)
                         {getCategoryIcon(ruleSet.category || "custom")}
                         <h3 className="text-lg font-semibold text-gray-900">{ruleSet.name}</h3>
                         <Badge variant={ruleSet.is_active ? "default" : "secondary"}>
-                          {ruleSet.is_active ? "Aktif" : "Pasif"}
+                          {ruleSet.is_active ? t.active : t.inactive}
                         </Badge>
                       </div>
                       
@@ -512,8 +568,15 @@ export default function RuleSetManager({ onRuleSetChange }: RuleSetManagerProps)
                       )}
                       
                       <div className="flex items-center gap-4 text-sm text-gray-500">
-                        <span>{ruleSet.rules_count} kural</span>
-                        <span>Oluşturulma: {new Date(ruleSet.created_at).toLocaleDateString('tr-TR')}</span>
+                        <span>
+                          {ruleSet.rules_count} {t.rulesLabel}
+                        </span>
+                        <span>
+                          {t.created}:{" "}
+                          {new Date(ruleSet.created_at).toLocaleDateString(
+                            locale === "en" ? "en-US" : "tr-TR"
+                          )}
+                        </span>
                       </div>
 
                       {/* Tags */}
@@ -577,21 +640,21 @@ export default function RuleSetManager({ onRuleSetChange }: RuleSetManagerProps)
                 {/* Expanded Rules */}
                 {expandedRuleSet === ruleSet.id && (
                   <div className="mt-4 pt-4 border-t border-gray-200">
-                    <h4 className="text-sm font-medium text-gray-900 mb-3">Kurallar:</h4>
+                    <h4 className="text-sm font-medium text-gray-900 mb-3">{t.rulesTitle}</h4>
                     <div className="space-y-2">
                       {ruleSet.rules.map((rule, index) => (
                         <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                           <div className="flex items-center gap-3">
                             {getActionIcon(rule.action)}
                             <div>
-                              <p className="text-sm font-medium">{rule.name || `Kural ${index + 1}`}</p>
+                              <p className="text-sm font-medium">{rule.name || `${t.rulePrefix} ${index + 1}`}</p>
                               <p className="text-xs text-gray-500">
-                                {rule.criteria.length} kriter, Eylem: {rule.action}
+                                {rule.criteria.length} {locale === "en" ? "criteria" : "kriter"}, {t.actionLabel}: {rule.action}
                               </p>
                             </div>
                           </div>
                           <Badge variant={rule.is_active ? "default" : "secondary"} className="text-xs">
-                            {rule.is_active ? "Aktif" : "Pasif"}
+                            {rule.is_active ? t.active : t.inactive}
                           </Badge>
                         </div>
                       ))}
@@ -608,35 +671,35 @@ export default function RuleSetManager({ onRuleSetChange }: RuleSetManagerProps)
         <Card>
           <CardHeader>
             <CardTitle>
-              {editingRuleSet ? "Kural Setini Düzenle" : "Yeni Kural Seti"}
+              {editingRuleSet ? t.editRuleSet : t.createRuleSet}
             </CardTitle>
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="grid gap-4 md:grid-cols-3">
                 <div>
-                  <label className="text-sm font-medium">Kural Seti Adı</label>
+                  <label className="text-sm font-medium">{t.ruleSetName}</label>
                   <Input
                     value={formData.name}
                     onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                    placeholder="Örn: Finansal Veri Koruması"
+                    placeholder="e.g. Financial Data Protection"
                     required
                   />
                 </div>
                 <div>
-                  <label className="text-sm font-medium">Kategori</label>
+                  <label className="text-sm font-medium">{t.category}</label>
                   <select
                     className="w-full px-3 py-2 border border-input bg-background rounded-md"
                     value={formData.category}
                     onChange={(e) => setFormData({ ...formData, category: e.target.value })}
                   >
-                    <option value="security">Güvenlik</option>
-                    <option value="compliance">Uyumluluk</option>
-                    <option value="custom">Özel</option>
+                    <option value="security">{t.security}</option>
+                    <option value="compliance">{t.compliance}</option>
+                    <option value="custom">{t.custom}</option>
                   </select>
                 </div>
                 <div>
-                  <label className="text-sm font-medium">Öncelik</label>
+                  <label className="text-sm font-medium">{t.priority}</label>
                   <div className="flex items-center space-x-2">
                     <Input
                       type="number"
@@ -647,14 +710,14 @@ export default function RuleSetManager({ onRuleSetChange }: RuleSetManagerProps)
                       required
                     />
                     <div className="text-xs text-gray-500">
-                      1 = En Yüksek
+                      {t.highest}
                     </div>
                   </div>
                 </div>
               </div>
 
               <div>
-                <label className="text-sm font-medium">Etiketler</label>
+                <label className="text-sm font-medium">{t.tags}</label>
                 <div className="flex flex-wrap gap-2 mt-2 mb-2">
                   {formData.tags.map((tag, index) => (
                     <Badge key={index} variant="secondary" className="flex items-center gap-1">
@@ -672,7 +735,7 @@ export default function RuleSetManager({ onRuleSetChange }: RuleSetManagerProps)
                 </div>
                 <div className="flex items-center space-x-2">
                   <Input
-                    placeholder="Etiket ekle..."
+                    placeholder={t.addTag}
                     onKeyPress={(e) => {
                       if (e.key === 'Enter') {
                         e.preventDefault();
@@ -699,11 +762,11 @@ export default function RuleSetManager({ onRuleSetChange }: RuleSetManagerProps)
               </div>
 
               <div>
-                <label className="text-sm font-medium">Açıklama</label>
+                <label className="text-sm font-medium">{t.description}</label>
                 <textarea
                   value={formData.description}
                   onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                  placeholder="Kural setinin açıklaması..."
+                  placeholder={t.ruleSetDesc}
                   className="flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                 />
               </div>
@@ -717,7 +780,7 @@ export default function RuleSetManager({ onRuleSetChange }: RuleSetManagerProps)
                     onChange={(e) => setFormData({ ...formData, is_active: e.target.checked })}
                   />
                   <label htmlFor="is_active" className="text-sm font-medium">
-                    Aktif
+                    {t.active}
                   </label>
                 </div>
                 
@@ -729,7 +792,7 @@ export default function RuleSetManager({ onRuleSetChange }: RuleSetManagerProps)
                     onChange={(e) => setUseAdvancedCriteria(e.target.checked)}
                   />
                   <label htmlFor="use_advanced_criteria" className="text-sm font-medium">
-                    Gelişmiş Kriter Oluşturucu
+                    {t.advanced}
                   </label>
                 </div>
               </div>
@@ -739,11 +802,11 @@ export default function RuleSetManager({ onRuleSetChange }: RuleSetManagerProps)
                 <div className="flex items-center justify-between">
                   <h4 className="text-lg font-medium flex items-center">
                     <Zap className="h-5 w-5 mr-2 text-blue-600" />
-                    Kurallar
+                    {t.rules}
                   </h4>
                   <Button type="button" variant="outline" onClick={addNewRule}>
                     <Plus className="h-4 w-4 mr-2" />
-                    Kural Ekle
+                    {t.addRule}
                   </Button>
                 </div>
 
@@ -767,25 +830,25 @@ export default function RuleSetManager({ onRuleSetChange }: RuleSetManagerProps)
 
                       <div className="grid gap-4 md:grid-cols-2 pr-16">
                         <div>
-                          <label className="text-sm font-medium">Kural Adı</label>
+                          <label className="text-sm font-medium">{t.ruleName}</label>
                           <Input
                             value={rule.name}
                             onChange={(e) => updateRule(index, { ...rule, name: e.target.value })}
-                            placeholder="Örn: Kredi Kartı Tespiti"
+                            placeholder={t.exampleRule}
                           />
                         </div>
                         <div>
-                          <label className="text-sm font-medium">Aksiyon</label>
+                          <label className="text-sm font-medium">{t.action}</label>
                           <div className="flex items-center space-x-2">
                             <select
                               className="flex-1 px-3 py-2 border border-input bg-background rounded-md"
                               value={rule.action}
                               onChange={(e) => updateRule(index, { ...rule, action: e.target.value as "allow" | "mask" | "block" | "remove" })}
                             >
-                              <option value="allow">İzin Ver</option>
-                              <option value="mask">Maskele</option>
-                              <option value="block">Engelle</option>
-                              <option value="remove">Kaldır</option>
+                              <option value="allow">{locale === "en" ? "Allow" : "İzin Ver"}</option>
+                              <option value="mask">{locale === "en" ? "Mask" : "Maskele"}</option>
+                              <option value="block">{locale === "en" ? "Block" : "Engelle"}</option>
+                              <option value="remove">{locale === "en" ? "Remove" : "Kaldır"}</option>
                             </select>
                             {getActionIcon(rule.action)}
                           </div>
@@ -793,7 +856,7 @@ export default function RuleSetManager({ onRuleSetChange }: RuleSetManagerProps)
                       </div>
 
                       <div className="mt-4">
-                        <label className="text-sm font-medium">Kural Kriterleri</label>
+                        <label className="text-sm font-medium">{t.ruleCriteria}</label>
                         {useAdvancedCriteria ? (
                           <AdvancedCriteriaBuilder
                             criteria={rule.criteria}
@@ -810,7 +873,7 @@ export default function RuleSetManager({ onRuleSetChange }: RuleSetManagerProps)
 
                       <div className="mt-4 grid gap-4 md:grid-cols-3">
                         <div>
-                          <label className="text-sm font-medium">Öncelik</label>
+                          <label className="text-sm font-medium">{t.priority}</label>
                           <Input
                             type="number"
                             min="1"
@@ -820,11 +883,11 @@ export default function RuleSetManager({ onRuleSetChange }: RuleSetManagerProps)
                           />
                         </div>
                         <div>
-                          <label className="text-sm font-medium">Açıklama</label>
+                          <label className="text-sm font-medium">{t.description}</label>
                           <Input
                             value={rule.description || ""}
                             onChange={(e) => updateRule(index, { ...rule, description: e.target.value })}
-                            placeholder="Kural açıklaması..."
+                            placeholder={t.ruleDesc}
                           />
                         </div>
                         <div className="flex items-center space-x-2 pt-6">
@@ -835,7 +898,7 @@ export default function RuleSetManager({ onRuleSetChange }: RuleSetManagerProps)
                             onChange={(e) => updateRule(index, { ...rule, is_active: e.target.checked })}
                           />
                           <label htmlFor={`rule_active_${index}`} className="text-sm font-medium">
-                            Aktif
+                            {t.active}
                           </label>
                         </div>
                       </div>
@@ -847,13 +910,13 @@ export default function RuleSetManager({ onRuleSetChange }: RuleSetManagerProps)
                   <Card className="border-dashed">
                     <CardContent className="py-8 text-center">
                       <Zap className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                      <h3 className="text-lg font-medium text-gray-900 mb-2">Henüz Kural Yok</h3>
+                      <h3 className="text-lg font-medium text-gray-900 mb-2">{t.noRuleYet}</h3>
                       <p className="text-gray-600 mb-4">
-                        Bu kural setine ilk kuralınızı ekleyin
+                        {t.addFirstRule}
                       </p>
                       <Button type="button" onClick={addNewRule}>
                         <Plus className="h-4 w-4 mr-2" />
-                        İlk Kuralı Ekle
+                        {t.addFirstRuleBtn}
                       </Button>
                     </CardContent>
                   </Card>
@@ -862,7 +925,7 @@ export default function RuleSetManager({ onRuleSetChange }: RuleSetManagerProps)
 
               <div className="flex items-center space-x-2">
                 <Button type="submit" disabled={loading}>
-                  {loading ? "Kaydediliyor..." : editingRuleSet ? "Güncelle" : "Oluştur"}
+                  {loading ? t.saving : editingRuleSet ? t.update : t.create}
                 </Button>
                 <Button
                   type="button"
@@ -873,7 +936,7 @@ export default function RuleSetManager({ onRuleSetChange }: RuleSetManagerProps)
                     resetForm();
                   }}
                 >
-                  İptal
+                  {t.cancel}
                 </Button>
               </div>
             </form>
@@ -892,13 +955,13 @@ export default function RuleSetManager({ onRuleSetChange }: RuleSetManagerProps)
                     <CardTitle className="flex items-center space-x-2">
                       <span>{ruleSet.name}</span>
                       <Badge variant={ruleSet.is_active ? "default" : "secondary"}>
-                        {ruleSet.is_active ? "Aktif" : "Pasif"}
+                        {ruleSet.is_active ? t.active : t.inactive}
                       </Badge>
                       <Badge variant="outline">
-                        Öncelik: {ruleSet.priority}
+                        {t.priority}: {ruleSet.priority}
                       </Badge>
                       <Badge variant="outline">
-                        {ruleSet.rules_count} Kural
+                        {ruleSet.rules_count} {locale === "en" ? "Rules" : "Kural"}
                       </Badge>
                     </CardTitle>
                     {ruleSet.description && (
@@ -950,7 +1013,7 @@ export default function RuleSetManager({ onRuleSetChange }: RuleSetManagerProps)
             {expandedRuleSet === ruleSet.id && (
               <CardContent>
                 <div className="space-y-3">
-                  <h4 className="font-medium text-sm text-muted-foreground">KURALLAR</h4>
+                  <h4 className="font-medium text-sm text-muted-foreground">{t.listRulesTitle}</h4>
                   {ruleSet.rules.map((rule, index) => (
                     <div key={rule.id || index} className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
                       <div className="flex items-center space-x-3">
@@ -960,17 +1023,17 @@ export default function RuleSetManager({ onRuleSetChange }: RuleSetManagerProps)
                           {getActionLabel(rule.action)}
                         </Badge>
                         <Badge variant={rule.is_active ? "default" : "secondary"}>
-                          {rule.is_active ? "Aktif" : "Pasif"}
+                          {rule.is_active ? t.active : t.inactive}
                         </Badge>
                       </div>
                       <div className="text-sm text-muted-foreground">
                         {rule.criteria.length > 0 && (
                           <span>
-                            {rule.criteria.length} kriter tanımlanmış
+                            {rule.criteria.length} {t.criteriaDefined}
                           </span>
                         )}
                         {rule.criteria.length === 0 && (
-                          <span className="text-orange-600">Kriter tanımlanmamış</span>
+                          <span className="text-orange-600">{t.criteriaUndefined}</span>
                         )}
                       </div>
                     </div>
@@ -978,7 +1041,7 @@ export default function RuleSetManager({ onRuleSetChange }: RuleSetManagerProps)
                   {ruleSet.rules.length === 0 && (
                     <div className="text-center py-4 text-muted-foreground">
                       <AlertTriangle className="h-8 w-8 mx-auto mb-2 opacity-50" />
-                      <p className="text-sm">Bu kural setinde henüz kural bulunmuyor</p>
+                      <p className="text-sm">{t.noRulesInSet}</p>
                     </div>
                   )}
                 </div>
@@ -991,13 +1054,13 @@ export default function RuleSetManager({ onRuleSetChange }: RuleSetManagerProps)
           <Card>
             <CardContent className="text-center py-8">
               <FileText className="h-12 w-12 mx-auto mb-4 text-muted-foreground opacity-50" />
-              <h3 className="text-lg font-medium mb-2">Henüz kural seti bulunmuyor</h3>
+              <h3 className="text-lg font-medium mb-2">{t.emptyTitle}</h3>
               <p className="text-muted-foreground mb-4">
-                İlk kural setinizi oluşturmak için yukarıdaki "Yeni Kural Seti" butonunu kullanın.
+                {t.emptyDesc}
               </p>
               <Button onClick={() => setShowAddForm(true)}>
                 <Plus className="h-4 w-4 mr-2" />
-                İlk Kural Setini Oluştur
+                {t.createFirst}
               </Button>
             </CardContent>
           </Card>

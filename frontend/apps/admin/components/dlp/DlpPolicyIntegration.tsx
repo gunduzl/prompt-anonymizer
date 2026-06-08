@@ -19,9 +19,10 @@ interface DlpPolicy {
 
 interface DlpPolicyIntegrationProps {
   onPolicyChange?: () => void;
+  locale?: "en" | "tr";
 }
 
-const API = process.env.NEXT_PUBLIC_API_BASE || "http://localhost:8080/api";
+const API = process.env.NEXT_PUBLIC_API_BASE || "http://localhost:8080";
 
 const axiosWithAuth = axios.create();
 axiosWithAuth.interceptors.request.use((config) => {
@@ -30,7 +31,20 @@ axiosWithAuth.interceptors.request.use((config) => {
   return config;
 });
 
-export default function DlpPolicyIntegration({ onPolicyChange }: DlpPolicyIntegrationProps) {
+export default function DlpPolicyIntegration({ onPolicyChange, locale = "en" }: DlpPolicyIntegrationProps) {
+  const t = {
+    currentRules: locale === "en" ? "Current DLP Rules" : "Mevcut DLP Kuralları",
+    loading: locale === "en" ? "Loading rules..." : "Kurallar yükleniyor...",
+    empty: locale === "en" ? "No DLP rule yet" : "Henüz DLP kuralı bulunmuyor",
+    entity: locale === "en" ? "Entity" : "Entity",
+    priority: locale === "en" ? "Priority" : "Öncelik",
+    active: locale === "en" ? "Active" : "Aktif",
+    inactive: locale === "en" ? "Inactive" : "Pasif",
+    important: locale === "en" ? "Important" : "Önemli Bilgi",
+    info: locale === "en"
+      ? "These rules are checked automatically for every user message. Changes apply to the entire system immediately."
+      : "Bu kurallar her kullanıcı mesajında otomatik olarak kontrol edilir. Kural değişiklikleri anında tüm sisteme yansır.",
+  };
   const [policies, setPolicies] = useState<DlpPolicy[]>([]);
   const [loading, setLoading] = useState(false);
 
@@ -85,7 +99,7 @@ export default function DlpPolicyIntegration({ onPolicyChange }: DlpPolicyIntegr
         <div className="flex items-center justify-between">
           <CardTitle className="flex items-center space-x-2">
             <Shield className="h-5 w-5" />
-            <span>Mevcut DLP Kuralları</span>
+            <span>{t.currentRules}</span>
           </CardTitle>
           <Button
             variant="outline"
@@ -101,12 +115,12 @@ export default function DlpPolicyIntegration({ onPolicyChange }: DlpPolicyIntegr
         {loading ? (
           <div className="text-center py-4">
             <RefreshCw className="h-6 w-6 animate-spin mx-auto mb-2" />
-            <p className="text-sm text-gray-500">Kurallar yükleniyor...</p>
+            <p className="text-sm text-gray-500">{t.loading}</p>
           </div>
         ) : policies.length === 0 ? (
           <div className="text-center py-8">
             <Shield className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-            <p className="text-gray-500">Henüz DLP kuralı bulunmuyor</p>
+            <p className="text-gray-500">{t.empty}</p>
           </div>
         ) : (
           <div className="space-y-3">
@@ -125,7 +139,7 @@ export default function DlpPolicyIntegration({ onPolicyChange }: DlpPolicyIntegr
                   <div>
                     <h4 className="font-medium">{policy.name}</h4>
                     <p className="text-sm text-gray-500">
-                      Entity: {policy.entity_type} | Öncelik: {policy.priority}
+                      {t.entity}: {policy.entity_type} | {t.priority}: {policy.priority}
                     </p>
                     {policy.description && (
                       <p className="text-xs text-gray-400 mt-1">{policy.description}</p>
@@ -138,7 +152,7 @@ export default function DlpPolicyIntegration({ onPolicyChange }: DlpPolicyIntegr
                     onCheckedChange={(checked) => togglePolicy(policy.id, checked)}
                   />
                   <span className="text-sm text-gray-500">
-                    {policy.is_active ? 'Aktif' : 'Pasif'}
+                    {policy.is_active ? t.active : t.inactive}
                   </span>
                 </div>
               </div>
@@ -150,10 +164,9 @@ export default function DlpPolicyIntegration({ onPolicyChange }: DlpPolicyIntegr
           <div className="flex items-start space-x-2">
             <AlertTriangle className="h-5 w-5 text-blue-600 mt-0.5" />
             <div>
-              <h4 className="font-medium text-blue-900">Önemli Bilgi</h4>
+              <h4 className="font-medium text-blue-900">{t.important}</h4>
               <p className="text-sm text-blue-700 mt-1">
-                Bu kurallar her kullanıcı mesajında otomatik olarak kontrol edilir. 
-                Kural değişiklikleri anında tüm sisteme yansır.
+                {t.info}
               </p>
             </div>
           </div>

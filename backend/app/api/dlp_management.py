@@ -1201,3 +1201,98 @@ async def toggle_rule_set(
     except Exception as e:
         db.rollback()
         raise HTTPException(status_code=500, detail=f"Error toggling rule set: {str(e)}")
+
+
+# Patterns.json endpoints
+import re as regex_module
+from pathlib import Path
+
+class RegexTestRequest(BaseModel):
+    pattern: str
+    test_text: str
+
+@router.get("/patterns")
+async def get_patterns(
+    category: Optional[str] = Query(None, description="Filter by category"),
+    search: Optional[str] = Query(None, description="Search in name or description"),
+    user: models.User = Depends(require_admin_role())
+):
+    """Return patterns from patterns.json, grouped by category"""
+    patterns_path = Path(__file__).parent.parent.parent.parent / "patterns.json"
+    
+    if not patterns_path.exists():
+        raise HTTPException(404, "patterns.json not found")
+    
+    try:
+        with open(patterns_path, "r", encoding="utf-8") as f:
+            data = json.load(f)
+    except Exception as e:
+        raise HTTPException(500, f"Error reading patterns.json: {str(e)}")
+    
+    patterns = data.get("patterns", [])
+    
+    # Apply filters
+    if category:
+        patterns = [p for p in patterns if p.get("category", "").lower() == category.lower()]
+    
+    if search:
+        search_lower = search.lower()
+        patterns = [p for p in patterns if
+                   search_lower in p.get("name", "").lower() or
+                   search_lower in p.get("display_name", "").lower() or
+                   search_lower in p.get("description", "").lower()]
+    
+    # Group by category
+    categories: Dict[str, list] = {}
+    for p in patterns:
+        cat = p.get("category", "Other")
+        if cat not in categories:
+            categories[cat] = []
+        categories[cat].append(p)
+    
+    return {
+        "patterns": patterns,
+        "categories": categories,
+        "total": len(patterns),
+        "category_count": len(categories),
+    }
+
+
+@router.post("/regex-test")
+async def test_regex(
+    payload: RegexTestRequest,
+    user: models.User = Depends(require_admin_role())
+):
+    """Test a regex pattern against sample text and return matches"""
+    if not payload.pattern:
+        raise HTTPException(400, "Pattern is required")
+    if not payload.test_text:
+        raise HTTPException(400, "Test text is required")
+    
+    try:
+        compiled = regex_module.compile(payload.pattern)
+    except regex_module.error as e:
+        return {
+            "valid": False,
+            "error": str(e),
+            "matches": [],
+            "match_count": 0,
+        }
+    
+    matches = []
+    for m in compiled.finditer(payload.test_text):
+        matches.append({
+            "value": m.group(),
+            "start": m.start(),
+            "end": m.end(),
+            "groups": list(m.groups()) if m.groups() else [],
+        })
+    
+    return {
+        "valid": True,
+        "error": None,
+        "matches": matches,
+        "match_count": len(matches),
+        "pattern": payload.pattern,
+        "test_text": payload.test_text,
+    }
